@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -23,7 +24,34 @@ import java.util.List;
 
 @Controller
 public class RegistryEntryApiController implements RegistryEntryApi {
-
+	
+	//this static variable will be used in lieu of database solution.
+    private static final RegistryEntryList entries = new RegistryEntryList();
+    
+    //constructor created by gary yerby to handle in memory registry repository
+    public RegistryEntryApiController(){
+    	for(int i=1;i<10;i++){
+    		RegistryEntry entry = new RegistryEntry();
+    		entry.setId((long)i);
+    		entry.setName("Test Name" + i);
+    		entry.setValue("test value" + i);
+    		entry.setScope("Scope" + i);
+    		entry.setConfidential(true);
+    	entries.addListItem(entry);	
+    	}
+    	
+    	for(int j = 11; j<20; j++){
+			RegistryEntry entrysub = new RegistryEntry();
+    		entrysub.setId((long)j);
+    		entrysub.setName("Test Name" + j);
+    		entrysub.setValue("test value" + j);
+    		entrysub.setScope("Scope/subscope" + (j % 10));
+    		entrysub.setConfidential(false);
+    		entries.addListItem(entrysub);
+		}
+    	
+    	
+    }
     public ResponseEntity<RegistryEntry> addRegistryEntry(
 
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
@@ -37,9 +65,12 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 @ApiParam(value = ""  ) @RequestBody RegistryEntryList body
 
-) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntryList>(HttpStatus.OK);
+)   {
+     // assigned to Gary Yerby TO DO Add a list of entries.
+    	for(RegistryEntry entry : body.getList()){
+    		entries.addListItem(entry);
+    	}
+        return new ResponseEntity<RegistryEntryList>(entries,HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteRegistryEntries(
@@ -47,7 +78,13 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // do some magic!
+        // assigned to Gary Yerby
+    	for(RegistryEntry entry : entries.getList()){
+    		if(entry.getId().toString() == id){
+    			entries.getList().remove(entry);
+    			break;
+    		}
+    	}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -56,8 +93,15 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+        // assigned to Yifei
+    	RegistryEntry entry = new RegistryEntry();
+    	entry.setConfidential(true);
+    	entry.setId((long) 20);
+    	entry.setName("gwy");
+    	entry.setValue("test");
+    	entry.setScope("test");
+    	ResponseEntity<RegistryEntry> reEnt = new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
+    	return reEnt;
     }
 
     public ResponseEntity<RegistryEntry> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
@@ -100,8 +144,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+       //assigned to Richard
+    	//this feature is broken so we probably won't use.
+        return new ResponseEntity<RegistryEntry>(entries.getList().get(0), HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntry> updateRegistryEntry(
@@ -114,8 +159,16 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+    	
+    	//assigned to CK, Snefa
+        RegistryEntry entry = new RegistryEntry();
+        entry.setId(Long.parseLong(id));
+        entry.setName("testing");
+        entry.setValue("test value");
+        entry.setScope("testscope");
+        entry.setConfidential(true);
+        
+        return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     }
 
 }
