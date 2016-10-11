@@ -27,12 +27,13 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 	
 	//this static variable will be used in lieu of database solution.
     private static final RegistryEntryList entries = new RegistryEntryList();
-    
+    private static long id = 0;
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
-    	for(int i=1;i<10;i++){
+    	for(long i=1;i<10;i++){
+    		id++;
     		RegistryEntry entry = new RegistryEntry();
-    		entry.setId((long)i);
+    		entry.setId(id);
     		entry.setName("Test Name" + i);
     		entry.setValue("test value" + i);
     		entry.setScope("Scope" + i);
@@ -41,8 +42,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	}
     	
     	for(int j = 11; j<20; j++){
+    		id++;
 			RegistryEntry entrysub = new RegistryEntry();
-    		entrysub.setId((long)j);
+    		entrysub.setId(id);
     		entrysub.setName("Test Name" + j);
     		entrysub.setValue("test value" + j);
     		entrysub.setScope("Scope/subscope" + (j % 10));
@@ -68,9 +70,11 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 )   {
      // assigned to Gary Yerby TO DO Add a list of entries.
     	for(RegistryEntry entry : body.getList()){
+    		id++;
+    		entry.setId(id);
     		entries.addListItem(entry);
     	}
-        return new ResponseEntity<RegistryEntryList>(entries,HttpStatus.OK);
+        return new ResponseEntity<RegistryEntryList>(body,HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteRegistryEntries(
@@ -104,7 +108,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	return reEnt;
     }
 
-    public ResponseEntity<RegistryEntry> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
+    public ResponseEntity<RegistryEntryList> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
 
 
 
@@ -146,7 +150,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 ) {
        //assigned to Richard
     	//this feature is broken so we probably won't use.
-        return new ResponseEntity<RegistryEntry>(entries.getList().get(0), HttpStatus.OK);
+        return new ResponseEntity<RegistryEntryList>(entries, HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntry> updateRegistryEntry(

@@ -91,16 +91,16 @@ public interface RegistryEntryApi {
 );
 
 
-    @ApiOperation(value = "Find registry entries", notes = "Find one or more registry entries that match the given criteria", response = RegistryEntry.class, tags={ "registryEntry", })
+    @ApiOperation(value = "Find registry entries", notes = "Find one or more registry entries that match the given criteria", response = RegistryEntryList.class, tags={ "registryEntry", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successful", response = RegistryEntry.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = RegistryEntry.class),
-        @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
+        @ApiResponse(code = 200, message = "Successful", response = RegistryEntryList.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = RegistryEntryList.class),
+        @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntryList.class) })
     @RequestMapping(value = "/registryEntry",
         produces = { "application/xml", "application/json" }, 
         //consumes = { "application/xml", "application/json" },
         method = RequestMethod.GET)
-    ResponseEntity<RegistryEntry> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
+    ResponseEntity<RegistryEntryList> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
 
 
 
