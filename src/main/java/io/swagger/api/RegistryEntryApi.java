@@ -65,7 +65,7 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 500, message = "Internal Server Error", response = Void.class) })
     @RequestMapping(value = "/registryEntry/{id}",
         produces = { "application/xml", "application/json" }, 
-        consumes = { "application/xml", "application/json" },
+        //consumes = { "application/xml", "application/json" },
         method = RequestMethod.DELETE)
     ResponseEntity<Void> deleteRegistryEntries(
 @ApiParam(value = "",required=true ) @PathVariable("id") String id
@@ -82,7 +82,7 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
     @RequestMapping(value = "/registryEntry/{id}",
         produces = { "application/xml", "application/json" }, 
-        consumes = { "application/xml", "application/json" },
+        //consumes = { "application/xml", "application/json" },
         method = RequestMethod.GET)
     ResponseEntity<RegistryEntry> getRegistryEntry(
 @ApiParam(value = "",required=true ) @PathVariable("id") String id
@@ -98,7 +98,7 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
     @RequestMapping(value = "/registryEntry",
         produces = { "application/xml", "application/json" }, 
-        consumes = { "application/xml", "application/json" },
+        //consumes = { "application/xml", "application/json" },
         method = RequestMethod.GET)
     ResponseEntity<RegistryEntry> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
 
@@ -135,7 +135,7 @@ public interface RegistryEntryApi {
 );
 
 
-    @ApiOperation(value = "Update a registry entry", notes = "Update the registry entry with the given id", response = RegistryEntry.class, tags={ "registryEntry", })
+    @ApiOperation(value = "Update a registry entry", notes = "Update theee registry entry with the given id", response = RegistryEntry.class, tags={ "registryEntry", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Successful", response = RegistryEntry.class),
         @ApiResponse(code = 400, message = "Bad Request", response = RegistryEntry.class),

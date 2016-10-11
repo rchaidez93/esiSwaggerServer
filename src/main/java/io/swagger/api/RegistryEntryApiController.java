@@ -57,7 +57,14 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 ) {
         // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+    	RegistryEntry entry = new RegistryEntry();
+    	entry.setConfidential(true);
+    	entry.setId((long) 20);
+    	entry.setName("gwy");
+    	entry.setValue("test");
+    	entry.setScope("test");
+    	ResponseEntity<RegistryEntry> reEnt = new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
+    	return reEnt;
     }
 
     public ResponseEntity<RegistryEntry> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
@@ -100,7 +107,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // do some magic!
+       
         return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
     }
 
@@ -114,8 +121,14 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+        RegistryEntry entry = new RegistryEntry();
+        entry.setId(Long.parseLong(id));
+        entry.setName("testing");
+        entry.setValue("test value");
+        entry.setScope("testscope");
+        entry.setConfidential(true);
+        
+        return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     }
 
 }
