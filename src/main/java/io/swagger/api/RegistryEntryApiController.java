@@ -37,8 +37,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 @ApiParam(value = ""  ) @RequestBody RegistryEntryList body
 
-) {
-        // do some magic!
+)   {
+     // assigned to Gary Yerby TO DO Add a list of entries.
         return new ResponseEntity<RegistryEntryList>(HttpStatus.OK);
     }
 
@@ -47,7 +47,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // do some magic!
+        // assigned to Gary Yerby
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -56,7 +56,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // do some magic!
+        // assigned to Yifei
     	RegistryEntry entry = new RegistryEntry();
     	entry.setConfidential(true);
     	entry.setId((long) 20);
@@ -107,7 +107,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-       
+       //assigned to Richard
         return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
     }
 
@@ -121,6 +121,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
+    	
+    	//assigned to CK, Snefa
         RegistryEntry entry = new RegistryEntry();
         entry.setId(Long.parseLong(id));
         entry.setName("testing");
