@@ -39,18 +39,19 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setScope("Scope" + i);
     		entry.setConfidential(true);
     	entries.addListItem(entry);	
+    		for(int j = 1; j<=5; j++){
+    			id++;
+    			RegistryEntry entrysub = new RegistryEntry();
+    			entrysub.setId(id);
+    			entrysub.setName("Test Name" + j);
+    			entrysub.setValue("test value" + j);
+    			entrysub.setScope("Scope" + i);
+    			entrysub.setConfidential(false);
+    			entries.addListItem(entrysub);
+    		}
     	}
     	
-    	for(int j = 11; j<20; j++){
-    		id++;
-			RegistryEntry entrysub = new RegistryEntry();
-    		entrysub.setId(id);
-    		entrysub.setName("Test Name" + j);
-    		entrysub.setValue("test value" + j);
-    		entrysub.setScope("Scope/subscope" + (j % 10));
-    		entrysub.setConfidential(false);
-    		entries.addListItem(entrysub);
-		}
+    	
     	
     	
     }
@@ -74,7 +75,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setId(id);
     		entries.addListItem(entry);
     	}
-        return new ResponseEntity<RegistryEntryList>(body,HttpStatus.OK);
+        return new ResponseEntity<RegistryEntryList>(body,409);
     }
 
     public ResponseEntity<Void> deleteRegistryEntries(
