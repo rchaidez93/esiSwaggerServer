@@ -83,11 +83,17 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 ) {
         // assigned to Gary Yerby
-    	for(RegistryEntry entry : entries.getList()){
-    		if(entry.getId().toString() == id){
-    			entries.getList().remove(entry);
-    			break;
-    		}
+    	String[] ids = id.split(",");
+    	List<RegistryEntry> entrieslist = entries.getList();
+    	for(int i = 0; i<ids.length;i++){
+    		long deleteId = Long.parseLong(ids[i]);
+    		for(RegistryEntry entry :  entrieslist){
+    			long entryid = entry.getId();
+    			if(entryid == deleteId){
+    				entrieslist.remove(entry);
+    				break;
+    			}
+    	}
     	}
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
