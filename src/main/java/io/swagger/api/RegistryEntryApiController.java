@@ -75,7 +75,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setId(id);
     		entries.addListItem(entry);
     	}
-        return new ResponseEntity<RegistryEntryList>(body,409);
+    	
+        return new ResponseEntity<RegistryEntryList>(body,HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteRegistryEntries(
@@ -157,7 +158,22 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 ) {
        //assigned to Richard
     	//this feature is broken so we probably won't use.
-        return new ResponseEntity<RegistryEntryList>(entries, HttpStatus.OK);
+    	RegistryEntryList filteredList = new RegistryEntryList();
+    	List<RegistryEntry> mainlist = entries.getList();
+    	if(name.equals("*")){
+    		String val = "go";
+    	}
+    	
+    	
+    	for(RegistryEntry entry : mainlist){
+    		if((name.equals("*") || entry.getName().equals(name) ) &&
+    			(scope.equals("*") || entry.getScope().equals(scope)) &&
+    			(value.equals("*") || entry.getValue().equals(value) )
+    		){
+    			filteredList.addListItem(entry);
+    		}
+    	}
+        return new ResponseEntity<RegistryEntryList>(filteredList, HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntry> updateRegistryEntry(
