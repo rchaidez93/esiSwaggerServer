@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.common.net.HttpHeaders;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,28 +29,31 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 	
 	//this static variable will be used in lieu of database solution.
     private static final RegistryEntryList entries = new RegistryEntryList();
-    
+    private static long id = 0;
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
-    	for(int i=1;i<10;i++){
+    	for(long i=1;i<10;i++){
+    		id++;
     		RegistryEntry entry = new RegistryEntry();
-    		entry.setId((long)i);
+    		entry.setId(id);
     		entry.setName("Test Name" + i);
     		entry.setValue("test value" + i);
     		entry.setScope("Scope" + i);
     		entry.setConfidential(true);
     	entries.addListItem(entry);	
+    		for(int j = 1; j<=5; j++){
+    			id++;
+    			RegistryEntry entrysub = new RegistryEntry();
+    			entrysub.setId(id);
+    			entrysub.setName("Test Name" + j);
+    			entrysub.setValue("test value" + j);
+    			entrysub.setScope("Scope" + i);
+    			entrysub.setConfidential(false);
+    			entries.addListItem(entrysub);
+    		}
     	}
     	
-    	for(int j = 11; j<20; j++){
-			RegistryEntry entrysub = new RegistryEntry();
-    		entrysub.setId((long)j);
-    		entrysub.setName("Test Name" + j);
-    		entrysub.setValue("test value" + j);
-    		entrysub.setScope("Scope/subscope" + (j % 10));
-    		entrysub.setConfidential(false);
-    		entries.addListItem(entrysub);
-		}
+    	
     	
     	
     }
@@ -57,8 +62,20 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+    	id++;
+    	RegistryEntry entry = new RegistryEntry();
+    	entry.setId(id);
+    	entry.setName(body.getName());
+    	entry.setValue(body.getValue());
+    	entry.setScope(body.getScope());
+    	entry.setConfidential(body.getConfidential());
+    	
+        entries.addListItem(entry);
+        
+        
+       
+        
+        return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntryList> addUpdateRegistryEntries(
@@ -66,11 +83,16 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntryList body
 
 )   {
-     // assigned to Gary Yerby TO DO Add a list of entries.
+     
     	for(RegistryEntry entry : body.getList()){
+    		id++;
+    		entry.setId(id);
     		entries.addListItem(entry);
     	}
-        return new ResponseEntity<RegistryEntryList>(entries,HttpStatus.OK);
+    	 
+         
+
+        return new ResponseEntity<RegistryEntryList>(body,HttpStatus.OK);
     }
 
     public ResponseEntity<Void> deleteRegistryEntries(
@@ -78,13 +100,22 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // assigned to Gary Yerby
-    	for(RegistryEntry entry : entries.getList()){
-    		if(entry.getId().toString() == id){
-    			entries.getList().remove(entry);
-    			break;
-    		}
+        
+    	String[] ids = id.split(",");
+    	List<RegistryEntry> entrieslist = entries.getList();
+    	for(int i = 0; i<ids.length;i++){
+    		long deleteId = Long.parseLong(ids[i]);
+    		for(RegistryEntry entry :  entrieslist){
+    			long entryid = entry.getId();
+    			if(entryid == deleteId){
+    				entrieslist.remove(entry);
+    				break;
+    			}
     	}
+    	}
+    	
+    	          
+
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -100,11 +131,14 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	entry.setName("gwy");
     	entry.setValue("test");
     	entry.setScope("test");
+    	 
+         
+
     	ResponseEntity<RegistryEntry> reEnt = new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     	return reEnt;
     }
 
-    public ResponseEntity<RegistryEntry> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
+    public ResponseEntity<RegistryEntryList> searchRegistryEntries(@ApiParam(value = "", defaultValue = "*") @RequestParam(value = "scope", required = false, defaultValue="*") String scope
 
 
 
@@ -144,9 +178,28 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
+    	
+    	 
+         
+    	
        //assigned to Richard
     	//this feature is broken so we probably won't use.
-        return new ResponseEntity<RegistryEntry>(entries.getList().get(0), HttpStatus.OK);
+    	RegistryEntryList filteredList = new RegistryEntryList();
+    	List<RegistryEntry> mainlist = entries.getList();
+    	if(name.equals("*")){
+    		String val = "go";
+    	}
+    	
+    	
+    	for(RegistryEntry entry : mainlist){
+    		if((name.equals("*") || entry.getName().equals(name) ) &&
+    			(scope.equals("*") || entry.getScope().equals(scope)) &&
+    			(value.equals("*") || entry.getValue().equals(value) )
+    		){
+    			filteredList.addListItem(entry);
+    		}
+    	}
+        return new ResponseEntity<RegistryEntryList>(filteredList, HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntry> updateRegistryEntry(
@@ -159,16 +212,26 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
+    	 
+    	List<RegistryEntry> entrieslist = entries.getList();
+    	for(RegistryEntry entry :  entrieslist){
+			long entryid = entry.getId();
+			if(Long.parseLong(id) == entryid){
+				entry.setConfidential(body.getConfidential());
+				entry.setName(body.getName());
+				entry.setScope(body.getScope());
+				entry.setValue(body.getValue());
+				 
+			        
+
+				return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
+			}
+	}
     	
     	//assigned to CK, Snefa
-        RegistryEntry entry = new RegistryEntry();
-        entry.setId(Long.parseLong(id));
-        entry.setName("testing");
-        entry.setValue("test value");
-        entry.setScope("testscope");
-        entry.setConfidential(true);
         
-        return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
+        
+        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
     }
 
 }
