@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.common.net.HttpHeaders;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,8 +62,20 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
-        // do some magic!
-        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
+    	id++;
+    	RegistryEntry entry = new RegistryEntry();
+    	entry.setId(id);
+    	entry.setName(body.getName());
+    	entry.setValue(body.getValue());
+    	entry.setScope(body.getScope());
+    	entry.setConfidential(body.getConfidential());
+    	
+        entries.addListItem(entry);
+        
+        
+       
+        
+        return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntryList> addUpdateRegistryEntries(
@@ -69,13 +83,15 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntryList body
 
 )   {
-     // assigned to Gary Yerby TO DO Add a list of entries.
+     
     	for(RegistryEntry entry : body.getList()){
     		id++;
     		entry.setId(id);
     		entries.addListItem(entry);
     	}
-    	
+    	 
+         
+
         return new ResponseEntity<RegistryEntryList>(body,HttpStatus.OK);
     }
 
@@ -84,7 +100,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // assigned to Gary Yerby
+        
     	String[] ids = id.split(",");
     	List<RegistryEntry> entrieslist = entries.getList();
     	for(int i = 0; i<ids.length;i++){
@@ -97,6 +113,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     			}
     	}
     	}
+    	
+    	          
+
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
@@ -112,6 +131,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	entry.setName("gwy");
     	entry.setValue("test");
     	entry.setScope("test");
+    	 
+         
+
     	ResponseEntity<RegistryEntry> reEnt = new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     	return reEnt;
     }
@@ -156,6 +178,10 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
+    	
+    	 
+         
+    	
        //assigned to Richard
     	//this feature is broken so we probably won't use.
     	RegistryEntryList filteredList = new RegistryEntryList();
@@ -186,16 +212,26 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
 ) {
+    	 
+    	List<RegistryEntry> entrieslist = entries.getList();
+    	for(RegistryEntry entry :  entrieslist){
+			long entryid = entry.getId();
+			if(Long.parseLong(id) == entryid){
+				entry.setConfidential(body.getConfidential());
+				entry.setName(body.getName());
+				entry.setScope(body.getScope());
+				entry.setValue(body.getValue());
+				 
+			        
+
+				return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
+			}
+	}
     	
     	//assigned to CK, Snefa
-        RegistryEntry entry = new RegistryEntry();
-        entry.setId(Long.parseLong(id));
-        entry.setName("testing");
-        entry.setValue("test value");
-        entry.setScope("testscope");
-        entry.setConfidential(true);
         
-        return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
+        
+        return new ResponseEntity<RegistryEntry>(HttpStatus.OK);
     }
 
 }
