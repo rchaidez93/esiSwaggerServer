@@ -6,9 +6,11 @@ import io.swagger.model.RegistryEntryList;
 
 import io.swagger.annotations.*;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -24,12 +26,16 @@ import java.util.List;
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.SpringCodegen", date = "2016-09-22T00:15:19.505Z")
 
+
+
 @Controller
 public class RegistryEntryApiController implements RegistryEntryApi {
 	
 	//this static variable will be used in lieu of database solution.
     private static final RegistryEntryList entries = new RegistryEntryList();
     private static long id = 0;
+    
+    
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
     	for(long i=1;i<10;i++){
@@ -63,6 +69,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 ) {
     	id++;
+    	if(body.getName() == null || body.getName().isEmpty()) return new ResponseEntity<RegistryEntry>(HttpStatus.BAD_REQUEST);
+	    if(entries.EntryExists(body.getScope(),body.getName()))return new ResponseEntity<RegistryEntry>(HttpStatus.CONFLICT);
+			
     	RegistryEntry entry = new RegistryEntry();
     	entry.setId(id);
     	entry.setName(body.getName());
@@ -71,9 +80,6 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	entry.setConfidential(body.getConfidential());
     	
         entries.addListItem(entry);
-        
-        
-       
         
         return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     }

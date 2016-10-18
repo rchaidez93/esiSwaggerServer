@@ -26,7 +26,7 @@ public interface RegistryEntryApi {
     @ApiOperation(value = "Add a registry entry", notes = "", response = RegistryEntry.class, tags={ "registryEntry", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Successful", response = RegistryEntry.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = RegistryEntry.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = ApiException.class),
         @ApiResponse(code = 409, message = "Entry Already Exists", response = RegistryEntry.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
     @CrossOrigin(origins = "http://localhost:8080")
@@ -38,7 +38,7 @@ public interface RegistryEntryApi {
 
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
-);
+) throws ApiException;
 
 
     @ApiOperation(value = "Add and/or update a list of registry entries", notes = "", response = RegistryEntryList.class, tags={ "registryEntry", })

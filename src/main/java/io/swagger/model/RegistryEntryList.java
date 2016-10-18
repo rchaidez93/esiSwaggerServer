@@ -92,6 +92,15 @@ public class RegistryEntryList   {
     sb.append("}");
     return sb.toString();
   }
+  
+  public boolean EntryExists(String Scope, String Name){
+	  for(RegistryEntry entry : this.list){
+		  if(entry.getName().equalsIgnoreCase(Name) && entry.getScope().equalsIgnoreCase(Scope)){
+			  return true;
+		  }
+	  }
+	  return false;
+  }
 
   /**
    * Convert the given object to string with each line indented by 4 spaces
