@@ -38,7 +38,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
-    	for(long i=1;i<10;i++){
+    	int ttlcnt = 0;
+    	for(long i=1;i<25;i++){
+    		ttlcnt++;
     		id++;
     		RegistryEntry entry = new RegistryEntry();
     		entry.setId(id);
@@ -47,7 +49,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setScope("Scope" + i);
     		entry.setConfidential(true);
     	entries.addListItem(entry);	
-    		for(int j = 1; j<=5; j++){
+    		for(int j = 1; j<=15; j++){
+    			ttlcnt++;
     			id++;
     			RegistryEntry entrysub = new RegistryEntry();
     			entrysub.setId(id);
@@ -58,6 +61,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     			entries.addListItem(entrysub);
     		}
     	}
+    	
+    	entries.setTotalCount(ttlcnt);
     	
     	
     	
@@ -196,15 +201,30 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		String val = "go";
     	}
     	
+    	int ttlcount = 0;
     	
     	for(RegistryEntry entry : mainlist){
     		if((name.equals("*") || entry.getName().equals(name) ) &&
     			(scope.equals("*") || entry.getScope().equals(scope)) &&
     			(value.equals("*") || entry.getValue().equals(value) )
     		){
+    			ttlcount++;
     			filteredList.addListItem(entry);
+    			
     		}
     	}
+    	
+    	
+    	
+    	List<RegistryEntry> offsetlist = filteredList.getList();
+    	if(offset>0) offsetlist.subList(0, offset).clear();
+    	
+    	int size = offsetlist.size();
+    	if(count <= size)
+    		offsetlist.subList(count, offsetlist.size()).clear();
+    	filteredList.setList(offsetlist);
+    	
+    	filteredList.setTotalCount(ttlcount);
         return new ResponseEntity<RegistryEntryList>(filteredList, HttpStatus.OK);
     }
 
