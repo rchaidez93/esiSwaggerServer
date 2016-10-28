@@ -17,9 +17,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import com.google.common.net.HttpHeaders;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,26 +42,28 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
     	int ttlcnt = 0;
-    	for(long i=1;i<25;i++){
+    	for(long i=1;i<2;i++){
     		ttlcnt++;
     		id++;
     		RegistryEntry entry = new RegistryEntry();
     		entry.setId(id);
     		entry.setName("Test Name" + i);
     		entry.setValue("test value" + i);
-    		entry.setScope("Scope" + i);
+    		entry.setScope("/Scope" + i);
     		entry.setConfidential(true);
     	entries.addListItem(entry);	
-    		for(int j = 1; j<=15; j++){
-    			ttlcnt++;
-    			id++;
-    			RegistryEntry entrysub = new RegistryEntry();
-    			entrysub.setId(id);
-    			entrysub.setName("Test Name" + j);
-    			entrysub.setValue("test value" + j);
-    			entrysub.setScope("Scope" + i);
-    			entrysub.setConfidential(false);
-    			entries.addListItem(entrysub);
+    		for(int j = 1; j<2; j++){
+    			for(int k = 1; k<2; k++){
+        			ttlcnt++;
+        			id++;
+        			RegistryEntry entrysub = new RegistryEntry();
+        			entrysub.setId(id);
+        			entrysub.setName("Test Name" + k);
+        			entrysub.setValue("test value" + j);
+        			entrysub.setScope("/Scope" + i + "/Subscope" + j);
+        			entrysub.setConfidential(false);
+        			entries.addListItem(entrysub);
+        		}
     		}
     	}
     	
@@ -106,6 +111,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
         return new ResponseEntity<RegistryEntryList>(body,HttpStatus.OK);
     }
 
+    
     public ResponseEntity<Void> deleteRegistryEntries(
 @ApiParam(value = "",required=true ) @PathVariable("id") String id
 
@@ -197,21 +203,37 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	//this feature is broken so we probably won't use.
     	RegistryEntryList filteredList = new RegistryEntryList();
     	List<RegistryEntry> mainlist = entries.getList();
-    	if(name.equals("*")){
-    		String val = "go";
-    	}
+    	
     	
     	int ttlcount = 0;
     	
     	for(RegistryEntry entry : mainlist){
+    		
+    		Pattern nameRE;
+    		
+			
+				nameRE = Pattern.compile("^" + name.replaceAll("[*]", ".*") + "$");
+				Matcher namematcher = nameRE.matcher(entry.getName());
+	    		Pattern scopeRE = Pattern.compile("^" + scope.replaceAll("[*]", ".*") + "$");
+	    		Matcher scopematcher = scopeRE.matcher(entry.getScope());
+	    		Pattern valueRE = Pattern.compile("^" + value.replaceAll("[*]", ".*") + "$");
+	    		Matcher valuematcher = valueRE.matcher(entry.getValue());
+	    		if(namematcher.find() && valuematcher.find() && scopematcher.find()){
+	    			ttlcount++;
+	    			filteredList.addListItem(entry);
+	    		}
+			
+    		
+    		/*
     		if((name.equals("*") || entry.getName().equals(name) ) &&
     			(scope.equals("*") || entry.getScope().equals(scope)) &&
     			(value.equals("*") || entry.getValue().equals(value) )
     		){
+    			
     			ttlcount++;
     			filteredList.addListItem(entry);
-    			
     		}
+    		*/
     	}
     	
     	
