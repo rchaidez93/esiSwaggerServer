@@ -66,6 +66,7 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 400, message = "Bad Request", response = Void.class),
         @ApiResponse(code = 404, message = "Not Found", response = Void.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = Void.class) })
+    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry/{id}",
     
         produces = { "application/xml", "application/json" }, 
