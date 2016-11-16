@@ -208,15 +208,15 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	int ttlcount = 0;
     	
     	for(RegistryEntry entry : mainlist){
-    		
+    		int caseSensitivityFlags = matchCase==false?Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE:0;
     		Pattern nameRE;
     		
 			
-				nameRE = Pattern.compile("^" + name.replaceAll("[*]", ".*") + "$");
+				nameRE = Pattern.compile("^" + name.replaceAll("[*]", ".*") + "$",caseSensitivityFlags);
 				Matcher namematcher = nameRE.matcher(entry.getName());
-	    		Pattern scopeRE = Pattern.compile("^" + scope.replaceAll("[*]", ".*") + "$");
+	    		Pattern scopeRE = Pattern.compile("^" + scope.replaceAll("[*]", ".*") + "$",caseSensitivityFlags);
 	    		Matcher scopematcher = scopeRE.matcher(entry.getScope());
-	    		Pattern valueRE = Pattern.compile("^" + value.replaceAll("[*]", ".*") + "$");
+	    		Pattern valueRE = Pattern.compile("^" + value.replaceAll("[*]", ".*") + "$",caseSensitivityFlags);
 	    		Matcher valuematcher = valueRE.matcher(entry.getValue());
 	    		if(namematcher.find() && valuematcher.find() && scopematcher.find()){
 	    			ttlcount++;
