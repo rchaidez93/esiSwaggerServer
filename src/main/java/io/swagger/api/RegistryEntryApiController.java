@@ -220,7 +220,14 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 	    		Matcher valuematcher = valueRE.matcher(entry.getValue());
 	    		if(namematcher.find() && valuematcher.find() && scopematcher.find()){
 	    			ttlcount++;
-	    			filteredList.addListItem(entry);
+	    			boolean onlyConfidential = confidential.equals("true");
+	    			boolean showEntry = (onlyConfidential && entry.getConfidential() == true);
+	    			showEntry = onlyConfidential != true?true:showEntry; 
+	    			//Boolean ?true:entry.getConfidential();
+	    			
+	    			if(showEntry == true){
+	    				filteredList.addListItem(entry);
+	    			}
 	    		}
 			
     		
