@@ -1,0 +1,13 @@
+body { 
+	font-family: "Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+    background: url(../img/bg.jpg);
+    background-attachment: scroll!important;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+    
+}
+.canvas{
+	/*background: url(../img/bg.jpg);*/
+}

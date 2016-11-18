@@ -13,4 +13,11 @@ public class HomeController {
 		System.out.println("swagger-ui.html");
 		return "redirect:swagger-ui.html";
 	}
+	
+	@RequestMapping(value="/RegistryEntries")
+	public String entries()
+	{
+		System.out.println("test gwy");
+		return "entries.html";
+	}
 }
