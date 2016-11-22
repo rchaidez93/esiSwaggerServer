@@ -225,7 +225,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 	    		if(namematcher.find() && foundval && scopematcher.find()){
 	    			ttlcount++;
 	    			boolean onlyConfidential = confidential.equals("true");
-	    			boolean showEntry = (onlyConfidential && entry.getConfidential() == true);
+	    			boolean showEntry = (onlyConfidential && entry.getConfidential()!=null && entry.getConfidential() == true);
 	    			showEntry = onlyConfidential != true?true:showEntry; 
 	    			//Boolean ?true:entry.getConfidential();
 	    			
