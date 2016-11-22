@@ -42,7 +42,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
     	int ttlcnt = 0;
-    	for(long i=1;i<6;i++){
+    	for(long i=1;i<2;i++){
     		ttlcnt++;
     		id++;
     		RegistryEntry entry = new RegistryEntry();
@@ -52,8 +52,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setScope("/Scope" + i);
     		entry.setConfidential(true);
     	entries.addListItem(entry);	
-    		for(int j = 1; j<5; j++){
-    			for(int k = 1; k<14; k++){
+    		for(int j = 1; j<2; j++){
+    			for(int k = 1; k<2; k++){
         			ttlcnt++;
         			id++;
         			RegistryEntry entrysub = new RegistryEntry();
@@ -216,9 +216,13 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 				Matcher namematcher = nameRE.matcher(entry.getName());
 	    		Pattern scopeRE = Pattern.compile("^" + scope.replaceAll("[*]", ".*") + "$",caseSensitivityFlags);
 	    		Matcher scopematcher = scopeRE.matcher(entry.getScope());
-	    		Pattern valueRE = Pattern.compile("^" + value.replaceAll("[*]", ".*") + "$",caseSensitivityFlags);
+	    		
+	    		Pattern valueRE = Pattern.compile("^" + value.replaceAll("[*]", ".*") + "$" ,caseSensitivityFlags);
+	    		
 	    		Matcher valuematcher = valueRE.matcher(entry.getValue());
-	    		if(namematcher.find() && valuematcher.find() && scopematcher.find()){
+	    		boolean foundval = !entry.getValue().isEmpty() && valuematcher.find() || entry.getValue().isEmpty() && (value.equals("*") || value.isEmpty()); 
+	    		
+	    		if(namematcher.find() && foundval && scopematcher.find()){
 	    			ttlcount++;
 	    			boolean onlyConfidential = confidential.equals("true");
 	    			boolean showEntry = (onlyConfidential && entry.getConfidential() == true);
@@ -231,19 +235,31 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 	    		}
 			
     		
-    		/*
-    		if((name.equals("*") || entry.getName().equals(name) ) &&
-    			(scope.equals("*") || entry.getScope().equals(scope)) &&
-    			(value.equals("*") || entry.getValue().equals(value) )
-    		){
-    			
-    			ttlcount++;
-    			filteredList.addListItem(entry);
-    		}
-    		*/
+    		
     	}
     	
     	
+    	RegistryEntryList tmpREList = new RegistryEntryList();
+    	
+    	if(useInheritance==true){
+    		List<RegistryEntry> relist = filteredList.getList();
+    		for(RegistryEntry entry: relist){
+    			RegistryEntry inheritedEntry = RegistryEntry.GetInheritedEntry(entry,entries);
+    			if(inheritedEntry !=null) tmpREList.addListItem(inheritedEntry);
+    		}
+    		
+    		List<RegistryEntry> tmpList = tmpREList.getList();
+    		for(RegistryEntry entry: tmpList){
+    			boolean alreadyexists = false;
+    			for(RegistryEntry entry2: relist){
+    				if(entry2.getName().equals(entry.getName()) && entry2.getScope().equals(entry.getScope())){
+    					alreadyexists = true;
+    				}
+    			}
+    			if(alreadyexists == true) continue;
+    			filteredList.addListItem(entry);
+    		}
+		}
     	
     	List<RegistryEntry> offsetlist = filteredList.getList();
     	if(offset>0) offsetlist.subList(0, offset).clear();
