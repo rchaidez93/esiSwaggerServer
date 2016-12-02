@@ -129,25 +129,44 @@ var RegistryApplication = React.createClass({
      handleDropEntry:function(e,ui){
          var srcScope = $(ui.draggable).find(".registryEntryScope").text();
          var destScope = $(e.target).find(".scopeTitle").text();
-         var entryId = $(ui.draggable).find(".registryEntryId").text();
-         var srcEntryArray = this.state.data.ScopeArray[this.state.data.ScopeAssoc[srcScope]].regentries;
-         var srcEntry = null;
-      
-         for(i = 0 ; i<srcEntryArray.length; i++){
-             if(srcEntryArray[i].id == entryId ){
-                 srcEntry = srcEntryArray[i];
-                 break;
-             }
-         }
-         if(srcEntry !=null){
-             this.openDropEntryForm(srcEntry, destScope,ui);
-         }
+         var entryName = $(ui.draggable).find(".registryEntryName").text();
+         if(srcScope==destScope) return false; //can't drag to same scope
+         var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(destScope) + "&confidential=*&name="+encodeURIComponent(destName)+"&value=*&matchCase=false";
+
+         $.ajax({
+             url: searchurl,
+             dataType: 'json',
+             cache: false,
+             success: function(data) {
+              if(data.totalCount>0){
+                  var entryId = $(ui.draggable).find(".registryEntryId").text();
+                  var srcEntryArray = this.state.data.ScopeArray[this.state.data.ScopeAssoc[srcScope]].regentries;
+                  var srcEntry = null;
+                  
+                  for(i = 0 ; i<srcEntryArray.length; i++){
+                      if(srcEntryArray[i].id == entryId ){
+                          srcEntry = srcEntryArray[i];
+                          break;
+                      }
+                  }
+                  if(srcEntry !=null){
+                      this.openDropEntryForm(srcEntry, destScope,ui);
+                  }
+              } else {
+                  return false;
+              }
+             }.bind(this),
+             error: function(xhr, status, err) {
+                 this.setState({errormessage:status + err.toString()});
+             }.bind(this)
+         });
+       
       },
       componentDidMount:function(){
           this.getData(this.state.filterData);  
       },
      componentDidUpdate: function(beforeprops,afterprops){
-      
+        
         
         $( ".registryscopeDropable" ).droppable({
             accept:".dragableValid",
@@ -155,7 +174,12 @@ var RegistryApplication = React.createClass({
             activeClass: "activeDropable",
             drop: this.handleDropEntry,
             over:function(e,ui){
+                var srcScope = $(ui.draggable).find(".registryEntryScope").text();
+                var destScope = $(e.target).find(".scopeTitle").text();
+                
+                  
                
+              
             }
           });
      },
@@ -186,7 +210,7 @@ var RegistryApplication = React.createClass({
           dataType: 'json',
           cache: false,
           success: function(data) {
-              
+              alert(JSON.stringify(data));
               this.setState({data:convertData([]),isModalOpen:false})
               var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
               var newData = convertData(data.list);
@@ -298,7 +322,8 @@ var RegistryApplication = React.createClass({
          this.setState({ isModalOpen: false }); 
      }, 
      
-     copyScope: function(data,newScope,inherit){
+     copyScope: function(data,newScope){
+         
          var newData = this.state.data;
          newData.ScopeArray.push({scope:newScope,regentries:data}); //add to end of array
          newData.ScopeArray = this.sortByScope(newData.ScopeArray); //sort scope array
@@ -330,14 +355,14 @@ var RegistryApplication = React.createClass({
                      this.getData(this.state.filterData);
                   }.bind(this),
                   error: function(xhr, status, err) {
-                      this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});
+                      alert(err.toString() + status);
+                      
                     console.error(this.props.url, status, err.toString());
                   }.bind(this)
                 });
          
           }.bind(this),
           error: function(xhr, status, err) {
-              this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});
             console.error(this.props.url, status, err.toString());
           }.bind(this)
         });
@@ -412,13 +437,17 @@ var RegistryApplication = React.createClass({
                  this.setState(newdata);
               }.bind(this),
               error: function(xhr, status, err) {
-              this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});  
+              alert(JSON.stringify(xhr));    
+              
+                this.setState({errormessage:<ErrorMessage>{JSON.stringify(xhr)}</ErrorMessage>})  
                 console.error(this.props.url, status, err.toString());
               }.bind(this)
             });
          
          
      },
+     
+    
      
      getScopeEntries:function(scope){
          
@@ -447,7 +476,7 @@ var RegistryApplication = React.createClass({
             
          }.bind(this),
          error: function(xhr, status, err) {
-             this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});
+             alert(err)
          }.bind(this)
        });
      },
@@ -530,9 +559,9 @@ var RegistryScopeList = React.createClass({
     
   
     
-    handleCopyScope: function(obj, entryData, oldscope,inherit){
+    handleCopyScope: function(obj, entryData, oldscope){
         
-        this.props.copyScopeHandler(entryData, oldscope,inherit)
+        this.props.copyScopeHandler(entryData, oldscope)
     },
     handleDeleteScope: function(obj,scope){
         this.props.deleteScopeHandler(scope);
@@ -556,7 +585,7 @@ var RegistryScopeList = React.createClass({
    
     
     render: function(){
-        return(<div className="panel-group" id="accordion">
+        return(<div className="panel-group" id="">
         {this.props.data.ScopeArray.map(function(scope,idx) {
               var boundCopyScope = this.handleCopyScope.bind(null,this);    
               var boundUpdateEntry = this.handleUpdateEntry.bind(null,this);
@@ -625,9 +654,9 @@ var RegistryScope = React.createClass({
       
     },
     
-    onHandleCopyScopeSubmit:function(data,newScope,inherit){
+    onHandleCopyScopeSubmit:function(data,newScope){
         this.closeModal();
-        this.props.handleCopyScope(data,newScope,inherit);
+        this.props.handleCopyScope(data,newScope);
        //TODO add copy functionality;
        
     },
@@ -925,40 +954,13 @@ var RegistryEntry = React.createClass({
 var CopyScopeForm = React.createClass({
 
     getInitialState: function(){
-        return{scope:'',
-            errormessage:'',
-            disabledSubmit:true
-         };
-        
+        return{scope:'',errormessage:'',disabledSubmit:true};
     },
    handleCancel: function(){
       this.props.onCancel();
    },
    
-   handleInheritParentScope:function(e){
-       this.setState({disabledSubmit:!e.target.checked,
-           scope:e.target.checked?this.props.scope + "/newScope":"",
-           inherit:e.target.checked,
-           errormessage:''},function(){
-               var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name=*&value=*&matchCase=false";
-                   $.ajax({
-                       url: searchurl,
-                       dataType: 'json',
-                       cache: false,
-                       success: function(data) {
-                           if(data.totalCount>0) this.setState({errormessage:<ErrorMessage>A Scope with "{this.state.scope}" name already exists</ErrorMessage>,disabledSubmit:true})
-                       }.bind(this),
-                       error: function(xhr, status, err) {
-                           this.setState({errormessage:status + xhr.statusText});
-                       }.bind(this)
-                   });
-               
-           });
-       
-       
-       
-       
-   },
+   
    handleScopeChange: function(e){
        
 
@@ -978,7 +980,7 @@ var CopyScopeForm = React.createClass({
 	             });
 	         }
 	     });
-	},
+	   },
 
    
    handleSubmit: function(e){
@@ -999,14 +1001,10 @@ var CopyScopeForm = React.createClass({
               var entriestocopy = scopeData.ScopeArray[scopeData.ScopeAssoc[this.props.scope]].regentries;
              
              for(i=0;i<entriestocopy.length;i++){
-                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:this.state.inherit==true?"":entriestocopy[i].value}
-                 destScope.regentries.push(entry);
-                 
+                destScope.regentries.push({scope:scope, name:entriestocopy[i].name,id:0,value:entriestocopy[i].value});
             }
-            
-            
-             
             var newList = {list:destScope.regentries,totalCount:destScope.regentries.length}
+          
             $.ajax({
               url: this.props.url + "/registryEntry/batch",
               type: "POST",
@@ -1016,10 +1014,11 @@ var CopyScopeForm = React.createClass({
               cache: false,
               contentType:'application/json',
               success: function(data) {
-                  this.props.onSubmit(data.list,scope,this.state.inherit)
+              this.props.onSubmit(data.list,scope)
               }.bind(this),
               error: function(xhr, status, err) {
-                this.setState({errormessage:<ErrorMessage>{status + " " + err.toString()}</ErrorMessage>});
+                  alert("Error" + err.toString());
+                  alert(JSON.stringify(xhr));
                 console.error(this.props.url, status, err.toString());
               }.bind(this)
             });
@@ -1041,7 +1040,7 @@ var CopyScopeForm = React.createClass({
     <div className="form-group row">
       <label for="txtScope" className="col-sm-2 col-form-label">Scope</label>
       <div className="col-sm-10">
-        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><input type="checkbox" onClick={this.handleInheritParentScope}/>Inherit from Parent
+        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" placeholder="Scope"/>
       </div>
     </div>
           
@@ -1108,10 +1107,9 @@ var RegistryEntryForm = React.createClass({
 	         }
 	     });
 	   },
-	   handleNameChange: function(e){
-	        
-
-		     this.setState({name: e.target.value,errormessage:'',disabledSubmit:""},function(){
+	   
+	  handleNameChange: function(e){
+	       this.setState({name: e.target.value,errormessage:'',disabledSubmit:""},function(){
 		         if(this.state.name !='' && this.state.scope != ''){
 		             var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name="+encodeURIComponent(this.state.name)+"&value=*&matchCase=false";
 
@@ -1123,7 +1121,7 @@ var RegistryEntryForm = React.createClass({
 		                     if(data.totalCount>0) this.setState({errormessage:<ErrorMessage>Entry "{this.state.name}" already exists</ErrorMessage>,disabledSubmit:"disabled"})
 		                 }.bind(this),
 		                 error: function(xhr, status, err) {
-		                     this.setState({errormessage:<ErrorMessage>An an unexpected error has occurred: {xhr.statusText}</ErrorMessage>});
+		                     this.setState({errormessage:status + err.toString()});
 		                 }.bind(this)
 		             });
 		         }
@@ -1131,7 +1129,7 @@ var RegistryEntryForm = React.createClass({
 		        	 this.setState({disabledSubmit:"disabled"});
 		         }
 		     });
-		   },
+	},
     
     onSubmitClicked:function(e){
         e.preventDefault();
@@ -1156,7 +1154,8 @@ var RegistryEntryForm = React.createClass({
                  this.props.onSubmit(data);
              }.bind(this),
              error: function(xhr, status, err) {
-                 this.setState({errormessae:<ErrorMessage>{xhr.statusText}</ErrorMessage>});
+                 this.setState(err)
+                 alert(status);
                  console.error(murl, status, err.toString());
              }.bind(this)
            });
@@ -1430,7 +1429,7 @@ var RegistryEntryDispForm= React.createClass({
     <label class="control-label col-sm-2">ID:</label>&nbsp;<span className="registryEntryId">{this.props.data.id}</span>
      </div>
   <div class="form-group">
-    <label class="control-label col-sm-2">Name:</label>{this.props.data.name}
+    <label class="control-label col-sm-2">Name:</label><span className="registryEntryName">{this.props.data.name}</span>
     
   </div>
   
