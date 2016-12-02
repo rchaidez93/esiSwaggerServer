@@ -129,16 +129,18 @@ var RegistryApplication = React.createClass({
      handleDropEntry:function(e,ui){
          var srcScope = $(ui.draggable).find(".registryEntryScope").text();
          var destScope = $(e.target).find(".scopeTitle").text();
+        // var destName=$(e.target).find(".nameTitle").text();
          var entryName = $(ui.draggable).find(".registryEntryName").text();
          if(srcScope==destScope) return false; //can't drag to same scope
-         var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(destScope) + "&confidential=*&name="+encodeURIComponent(destName)+"&value=*&matchCase=false";
+         alert(entryName)
+         var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(destScope) + "&confidential=*&name="+encodeURIComponent(entryName)+"&value=*&matchCase=false";
 
          $.ajax({
              url: searchurl,
              dataType: 'json',
              cache: false,
              success: function(data) {
-              if(data.totalCount>0){
+              if(data.totalCount==0){
                   var entryId = $(ui.draggable).find(".registryEntryId").text();
                   var srcEntryArray = this.state.data.ScopeArray[this.state.data.ScopeAssoc[srcScope]].regentries;
                   var srcEntry = null;
@@ -210,7 +212,7 @@ var RegistryApplication = React.createClass({
           dataType: 'json',
           cache: false,
           success: function(data) {
-              alert(JSON.stringify(data));
+             // alert(JSON.stringify(data));
               this.setState({data:convertData([]),isModalOpen:false})
               var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
               var newData = convertData(data.list);
@@ -1102,12 +1104,12 @@ var RegistryEntryForm = React.createClass({
     },
     
     componentDidMount: function(){
-        
-         this.setState({id:this.props.data.id,
+          this.setState({id:this.props.data.id,
              name:this.props.data.name,
              scope:this.props.data.scope,
              confidential:this.props.data.confidential,
-             value:this.props.data.value});
+             value:this.props.data.value,
+             disabledSubmit:(this.props.data.name!="" && this.props.data.scope !="")?"":"disabled"});
     },
     
     handleScopeChange: function(e){

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.SpringCodegen", date = "2016-09-22T00:15:19.505Z")
@@ -240,8 +241,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	 
          
     	
-       //assigned to Richard
-    	//this feature is broken so we probably won't use.
+       
     	RegistryEntryList filteredList = new RegistryEntryList();
     	List<RegistryEntry> mainlist = entries.getList();
     	
@@ -280,15 +280,14 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	}
     	
     	
-    	RegistryEntryList tmpREList = new RegistryEntryList();
-    	
     	if(useInheritance==true){
-    		List<RegistryEntry> relist = filteredList.getList();
+    		ttlcount = 0;
     		filteredList = getParentScopeList(filteredList);
     		
 		}
     	
     	List<RegistryEntry> offsetlist = filteredList.getList();
+    	ttlcount = offsetlist.size();
     	if(offset>0) offsetlist.subList(0, offset).clear();
     	
     	int size = offsetlist.size();
@@ -299,8 +298,44 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	filteredList.setTotalCount(ttlcount);
         return new ResponseEntity<RegistryEntryList>(filteredList, HttpStatus.OK);
     }
+    
+    public List<RegistryEntry> listRegistryEntriesByScopeInheri(String scp) {
+		List<RegistryEntry> entryList = new ArrayList<RegistryEntry>();
+
+		String[] scpArr = scp.split("/");
+
+		String[] scopeArray = new String[scpArr.length - 1];
+
+		String crtstr = "";
+
+		for (int i = 1; i < scpArr.length; i++) {
+			crtstr = crtstr + "/" + scpArr[i];
+
+			scopeArray[i - 1] = crtstr;
+		}
+
+		List<String> nameList = new ArrayList<String>();
+
+		for (int j = scopeArray.length - 1; j >= 0; j--) {
+			List<RegistryEntry> tmplist = entryscopetable.get(scopeArray[j]).getList();
+
+			for (RegistryEntry crtentry : tmplist) {
+				String myname = crtentry.getName();
+
+				if (!nameList.contains(myname)) {
+					nameList.add(myname);
+					entryList.add(crtentry);
+				} 
+			}
+		}
+
+		return entryList;
+	}
+    
     private RegistryEntryList getParentScopeList(RegistryEntryList filteredList) {
-		List<String> scpList = new ArrayList<String>(); 
+    	RegistryEntryList rtnList = new RegistryEntryList();
+    	Hashtable<String,List<RegistryEntry>> processedScopes = new Hashtable<String,List<RegistryEntry>>(); 
+    	List<String> scpList = new ArrayList<String>(); 
 		List<RegistryEntry> entryList = filteredList.getList();
 		for(RegistryEntry entry : entryList){
 			if(!scpList.contains(entry.getScope())){
@@ -308,8 +343,27 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 			}
 		}
 		
-		return null;
+		for(String scp : scpList)
+		{
+			if(!processedScopes.containsKey(scp)){
+				processedScopes.put(scp, listRegistryEntriesByScopeInheri(scp));
+			}
+			
+		}
+		
+		Set<String> set = processedScopes.keySet();
+		int ttl = 0;
+		for(String key : set){
+			for(RegistryEntry entry : processedScopes.get(key)){
+				ttl++;
+				rtnList.addListItem(entry);
+			}
+		}
+		rtnList.setTotalCount(ttl);
+		return rtnList;
 	}
+    
+    
 	/*
     public static RegistryEntry GetParentEntry(RegistryEntry entry,RegistryEntryList entries,Hashtable<String,RegistryEntryList> scopetable){
   	  if(entry == null) return null;
