@@ -129,25 +129,44 @@ var RegistryApplication = React.createClass({
      handleDropEntry:function(e,ui){
          var srcScope = $(ui.draggable).find(".registryEntryScope").text();
          var destScope = $(e.target).find(".scopeTitle").text();
-         var entryId = $(ui.draggable).find(".registryEntryId").text();
-         var srcEntryArray = this.state.data.ScopeArray[this.state.data.ScopeAssoc[srcScope]].regentries;
-         var srcEntry = null;
-      
-         for(i = 0 ; i<srcEntryArray.length; i++){
-             if(srcEntryArray[i].id == entryId ){
-                 srcEntry = srcEntryArray[i];
-                 break;
-             }
-         }
-         if(srcEntry !=null){
-             this.openDropEntryForm(srcEntry, destScope,ui);
-         }
+         var entryName = $(ui.draggable).find(".registryEntryName").text();
+         if(srcScope==destScope) return false; //can't drag to same scope
+         var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(destScope) + "&confidential=*&name="+encodeURIComponent(destName)+"&value=*&matchCase=false";
+
+         $.ajax({
+             url: searchurl,
+             dataType: 'json',
+             cache: false,
+             success: function(data) {
+              if(data.totalCount>0){
+                  var entryId = $(ui.draggable).find(".registryEntryId").text();
+                  var srcEntryArray = this.state.data.ScopeArray[this.state.data.ScopeAssoc[srcScope]].regentries;
+                  var srcEntry = null;
+                  
+                  for(i = 0 ; i<srcEntryArray.length; i++){
+                      if(srcEntryArray[i].id == entryId ){
+                          srcEntry = srcEntryArray[i];
+                          break;
+                      }
+                  }
+                  if(srcEntry !=null){
+                      this.openDropEntryForm(srcEntry, destScope,ui);
+                  }
+              } else {
+                  return false;
+              }
+             }.bind(this),
+             error: function(xhr, status, err) {
+                 this.setState({errormessage:status + err.toString()});
+             }.bind(this)
+         });
+       
       },
       componentDidMount:function(){
           this.getData(this.state.filterData);  
       },
      componentDidUpdate: function(beforeprops,afterprops){
-      
+        
         
         $( ".registryscopeDropable" ).droppable({
             accept:".dragableValid",
@@ -155,7 +174,12 @@ var RegistryApplication = React.createClass({
             activeClass: "activeDropable",
             drop: this.handleDropEntry,
             over:function(e,ui){
+                var srcScope = $(ui.draggable).find(".registryEntryScope").text();
+                var destScope = $(e.target).find(".scopeTitle").text();
+                
+                  
                
+              
             }
           });
      },
@@ -186,7 +210,7 @@ var RegistryApplication = React.createClass({
           dataType: 'json',
           cache: false,
           success: function(data) {
-              
+              alert(JSON.stringify(data));
               this.setState({data:convertData([]),isModalOpen:false})
               var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
               var newData = convertData(data.list);
@@ -423,6 +447,8 @@ var RegistryApplication = React.createClass({
          
      },
      
+    
+     
      getScopeEntries:function(scope){
          
          var newData = this.state.data;
@@ -559,7 +585,7 @@ var RegistryScopeList = React.createClass({
    
     
     render: function(){
-        return(<div className="panel-group" id="accordion">
+        return(<div className="panel-group" id="">
         {this.props.data.ScopeArray.map(function(scope,idx) {
               var boundCopyScope = this.handleCopyScope.bind(null,this);    
               var boundUpdateEntry = this.handleUpdateEntry.bind(null,this);
@@ -836,16 +862,20 @@ var RegistryEntry = React.createClass({
      }, 
      
      componentDidUpdate:function(prevProps, prevState){
-         
-         $("#" + "draggable_" + this.props.data.id  ).draggable({
+       
+        $("#" + "draggable_" + this.props.data.id  ).draggable({
          revert : true
          });
-         $( ".registryscopeDropable" ).droppable( "option", "accept", ".dragableValid" );
+         //$( ".registryscopeDropable" ).droppable( "option", "accept", ".dragableValid" );
      },
 
      
      componentDidMount:function(){
         this.setState({data:this.props.data});  
+        $("#" + "draggable_" + this.props.data.id  ).draggable({
+            revert : true
+            });
+            $( ".registryscopeDropable" ).droppable( "option", "accept", ".dragableValid" );
      },
      openModal: function() { 
          this.setState({ isModalOpen: true }); 
@@ -1038,7 +1068,8 @@ var RegistryEntryForm = React.createClass({
             confidential:'',
             id:0,
             readonlyScope:'',
-            errormessage: ''
+            errormessage: '',
+            disabledSubmit: "disabled"
         }
                 
     },
@@ -1055,24 +1086,50 @@ var RegistryEntryForm = React.createClass({
     handleScopeChange: function(e){
         
 
-	     this.setState({scope: e.target.value,errormessage:'',disabledSubmit:false},function(){
-	         if(this.state.scope !=''){
-	             var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name=*&value=*&matchCase=false";
+	     this.setState({scope: e.target.value,errormessage:'',disabledSubmit:""},function(){
+	         if(this.state.scope !='' && this.state.name!=''){
+	        	 var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name="+encodeURIComponent(this.state.name)+"&value=*&matchCase=false";
+
 	             $.ajax({
 	                 url: searchurl,
 	                 dataType: 'json',
 	                 cache: false,
 	                 success: function(data) {
-	                     if(data.totalCount>0) this.setState({errormessage:<ErrorMessage>A Scope with "{this.state.scope}" name already exists</ErrorMessage>,disabledSubmit:true})
+	                     if(data.totalCount>0) this.setState({errormessage:<ErrorMessage>A Scope with "{this.state.scope}" name already exists</ErrorMessage>,disabledSubmit:"disabled"})
 	                 }.bind(this),
 	                 error: function(xhr, status, err) {
 	                     this.setState({errormessage:status + err.toString()});
 	                 }.bind(this)
 	             });
 	         }
+	         else{
+	        	 this.setState({disabledSubmit:"disabled"});
+	         }
 	     });
 	   },
 	   
+	  handleNameChange: function(e){
+	       this.setState({name: e.target.value,errormessage:'',disabledSubmit:""},function(){
+		         if(this.state.name !='' && this.state.scope != ''){
+		             var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name="+encodeURIComponent(this.state.name)+"&value=*&matchCase=false";
+
+		             $.ajax({
+		                 url: searchurl,
+		                 dataType: 'json',
+		                 cache: false,
+		                 success: function(data) {
+		                     if(data.totalCount>0) this.setState({errormessage:<ErrorMessage>Entry "{this.state.name}" already exists</ErrorMessage>,disabledSubmit:"disabled"})
+		                 }.bind(this),
+		                 error: function(xhr, status, err) {
+		                     this.setState({errormessage:status + err.toString()});
+		                 }.bind(this)
+		             });
+		         }
+		         else{
+		        	 this.setState({disabledSubmit:"disabled"});
+		         }
+		     });
+	},
     
     onSubmitClicked:function(e){
         e.preventDefault();
@@ -1146,7 +1203,7 @@ var RegistryEntryForm = React.createClass({
          </div>
           <div class="form-group">
             <label for="name">Name:</label>
-            <input type="text" onChange={this.onNameChange} className="form-control" id="name" value={this.state.name} />
+            <input type="text" onChange={this.handleNameChange} className="form-control" id="name" value={this.state.name} />
           </div>
           <div class="form-group">
             <label for="value">Value:</label>
@@ -1165,7 +1222,7 @@ var RegistryEntryForm = React.createClass({
             <div className="offset-sm-2 col-sm-12">
               
               <button type="button" className="btn btn-warning pull-right" onClick={this.props.onCancel} >Cancel</button>
-              <button type="button" className="btn btn-pink pull-right" onClick={this.onSubmitClicked} disabled={this.state.disabledSubmit}>Submit</button>
+              <button type="button" className="btn btn-pink pull-right" onClick={this.onSubmitClicked} disabled ={this.state.disabledSubmit}>Submit</button>
             </div>
           </div>
            <span>{this.state.errormessage}</span>
@@ -1372,7 +1429,7 @@ var RegistryEntryDispForm= React.createClass({
     <label class="control-label col-sm-2">ID:</label>&nbsp;<span className="registryEntryId">{this.props.data.id}</span>
      </div>
   <div class="form-group">
-    <label class="control-label col-sm-2">Name:</label>{this.props.data.name}
+    <label class="control-label col-sm-2">Name:</label><span className="registryEntryName">{this.props.data.name}</span>
     
   </div>
   

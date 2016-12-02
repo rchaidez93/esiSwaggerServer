@@ -1,5 +1,6 @@
 package io.swagger.model;
 
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -116,29 +117,7 @@ public class RegistryEntry   {
     this.value = value;
   }
 
-  public static RegistryEntry GetInheritedEntry(RegistryEntry entry,RegistryEntryList entries){
-	  if(entry == null) return null;
-	  String scope = entry.getScope();
-	  List<RegistryEntry> entrylist = entries.getList();
-	  String parentScope = (scope.lastIndexOf("/")> -1)?scope.substring(0,scope.lastIndexOf("/")):scope;
-	  
-	  if(parentScope.equals(scope)) return null;
-	  
-	  RegistryEntry parentEntry = null;
-	  for(int i = 0;i< entrylist.size(); i++){
-		  RegistryEntry tmpEntry = entrylist.get(i);
-		  
-		  //return parent entry if value is not null otherwise keep traversing up the ladder until we find a value. 
-		  if(tmpEntry.getScope().equals(parentScope) && tmpEntry.getName().equals(entry.getName())){ 
-				  if(!tmpEntry.getValue().isEmpty())
-					  return tmpEntry;
-			      return RegistryEntry.GetInheritedEntry(tmpEntry, entries);
-		  } //end if
-		} //end for
-	  
-	 //no parents found.
-	 return null;
-  }
+  
   @Override
   public boolean equals(java.lang.Object o) {
     if (this == o) {
