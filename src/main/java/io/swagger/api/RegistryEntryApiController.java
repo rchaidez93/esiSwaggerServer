@@ -23,6 +23,8 @@ import com.google.common.net.HttpHeaders;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 	
 	//this static variable will be used in lieu of database solution.
     private static final RegistryEntryList entries = new RegistryEntryList();
+    private static final Hashtable<String,RegistryEntryList> entryscopetable = new Hashtable<String,RegistryEntryList>();
     private static long id = 0;
     
     
@@ -51,7 +54,9 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setValue("test value" + i);
     		entry.setScope("/Scope" + i);
     		entry.setConfidential(true);
-    	entries.addListItem(entry);	
+    	//entries.addListItem(entry);	
+    	addEntryToTable(entry);
+    	
     		for(int j = 1; j<2; j++){
     			for(int k = 1; k<2; k++){
         			ttlcnt++;
@@ -62,7 +67,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
         			entrysub.setValue("test value" + j);
         			entrysub.setScope("/Scope" + i + "/Subscope" + j);
         			entrysub.setConfidential(false);
-        			entries.addListItem(entrysub);
+        			//entries.addListItem(entrysub);
+        			addEntryToTable(entrysub);
         		}
     		}
     	}
@@ -73,7 +79,55 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	
     	
     }
-    public ResponseEntity<RegistryEntry> addRegistryEntry(
+    private void addEntryToTable(RegistryEntry entry) {
+    	RegistryEntryList scopelist =null;
+       if(!entryscopetable.containsKey(entry.getScope())){
+    	   scopelist = new RegistryEntryList();
+    	   scopelist.addListItem(entry);
+    	   entries.addListItem(entry);
+    	   entryscopetable.put(entry.getScope(), scopelist);
+    	} else {
+    		scopelist = entryscopetable.get(entry.getScope());
+    		scopelist.addListItem(entry);
+    		entries.addListItem(entry);
+    		entryscopetable.replace(entry.getScope(),scopelist);
+    	}
+		
+	}
+    
+    private void deleteEntriesFromTable(String entryIds){
+    	RegistryEntryList scopelist = null;
+    	String[] ids = entryIds.split(",");
+    	List<RegistryEntry> entrieslist = entries.getList();
+    	for(int i = 0; i<ids.length;i++){
+    		long deleteId = Long.parseLong(ids[i]);
+    		for(RegistryEntry entry :  entrieslist){
+    			long entryid = entry.getId();
+    			if(entryid == deleteId){
+    				if(entryscopetable.containsKey(entry.getScope())){
+    		    		scopelist = entryscopetable.get(entry.getScope());
+    		    		List<RegistryEntry> registries = scopelist.getList();
+    		    		for(RegistryEntry tmpentry : entrieslist){
+    		    			long tmpentryid = tmpentry.getId();
+    		    			if(tmpentryid == deleteId){
+    		    				registries.remove(tmpentry);
+    		    				scopelist.setList(registries);
+    		    				entryscopetable.replace(entry.getScope(), scopelist);
+    		    			}
+    		    		}
+    		    	}
+    				entrieslist.remove(entry);
+    			//	removeEntryFromTable(entry)
+    				break;
+    			}
+    		}
+    	}
+    	
+    	
+    	
+    	
+    }
+	public ResponseEntity<RegistryEntry> addRegistryEntry(
 
 @ApiParam(value = ""  ) @RequestBody RegistryEntry body
 
@@ -89,8 +143,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	entry.setScope(body.getScope());
     	entry.setConfidential(body.getConfidential());
     	
-        entries.addListItem(entry);
         
+        addEntryToTable(entry);
         return new ResponseEntity<RegistryEntry>(entry,HttpStatus.OK);
     }
 
@@ -103,7 +157,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	for(RegistryEntry entry : body.getList()){
     		id++;
     		entry.setId(id);
-    		entries.addListItem(entry);
+    		//entries.addListItem(entry);
+    		addEntryToTable(entry);
     	}
     	 
          
@@ -118,22 +173,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 ) {
         
-    	String[] ids = id.split(",");
-    	List<RegistryEntry> entrieslist = entries.getList();
-    	for(int i = 0; i<ids.length;i++){
-    		long deleteId = Long.parseLong(ids[i]);
-    		for(RegistryEntry entry :  entrieslist){
-    			long entryid = entry.getId();
-    			if(entryid == deleteId){
-    				entrieslist.remove(entry);
-    				break;
-    			}
-    	}
-    	}
-    	
-    	          
-
-        return new ResponseEntity<Void>(HttpStatus.OK);
+    	deleteEntriesFromTable(id);
+    	return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
     public ResponseEntity<RegistryEntry> getRegistryEntry(
@@ -141,7 +182,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
 
 
 ) {
-        // assigned to Yifei
+        
     	RegistryEntry entry = new RegistryEntry();
     	entry.setConfidential(true);
     	entry.setId((long) 20);
@@ -243,22 +284,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	
     	if(useInheritance==true){
     		List<RegistryEntry> relist = filteredList.getList();
-    		for(RegistryEntry entry: relist){
-    			RegistryEntry inheritedEntry = RegistryEntry.GetInheritedEntry(entry,entries);
-    			if(inheritedEntry !=null) tmpREList.addListItem(inheritedEntry);
-    		}
+    		filteredList = getParentScopeList(filteredList);
     		
-    		List<RegistryEntry> tmpList = tmpREList.getList();
-    		for(RegistryEntry entry: tmpList){
-    			boolean alreadyexists = false;
-    			for(RegistryEntry entry2: relist){
-    				if(entry2.getName().equals(entry.getName()) && entry2.getScope().equals(entry.getScope())){
-    					alreadyexists = true;
-    				}
-    			}
-    			if(alreadyexists == true) continue;
-    			filteredList.addListItem(entry);
-    		}
 		}
     	
     	List<RegistryEntry> offsetlist = filteredList.getList();
@@ -272,7 +299,47 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     	filteredList.setTotalCount(ttlcount);
         return new ResponseEntity<RegistryEntryList>(filteredList, HttpStatus.OK);
     }
-
+    private RegistryEntryList getParentScopeList(RegistryEntryList filteredList) {
+		List<String> scpList = new ArrayList<String>(); 
+		List<RegistryEntry> entryList = filteredList.getList();
+		for(RegistryEntry entry : entryList){
+			if(!scpList.contains(entry.getScope())){
+				scpList.add(entry.getScope());
+			}
+		}
+		
+		return null;
+	}
+	/*
+    public static RegistryEntry GetParentEntry(RegistryEntry entry,RegistryEntryList entries,Hashtable<String,RegistryEntryList> scopetable){
+  	  if(entry == null) return null;
+  	  String scope = entry.getScope();
+  	  List<RegistryEntry> entrylist = entries.getList();
+  	  String parentScope = (scope.lastIndexOf("/")> -1)?scope.substring(0,scope.lastIndexOf("/")):scope;
+  	  
+  	  if(parentScope.equals(scope)) return null;
+  	  RegistryEntryList parentScopeList = scopetable.get(parentScope);
+  	  List<RegistryEntry> parentEntryList = parentScopeList.getList();
+  	  for(int i = 0; i< parentEntryList.size();i++){
+  		  RegistryEntry tmpEntry = parentEntryList.get(i);
+  		 // if(entry.getValu)
+  	  }
+  	  RegistryEntry parentEntry = null;
+  	  for(int i = 0;i< entrylist.size(); i++){
+  		  RegistryEntry tmpEntry = entrylist.get(i);
+  		  
+  		  //return parent entry if value is not null otherwise keep traversing up the ladder until we find a value. 
+  		  if(tmpEntry.getScope().equals(parentScope) && tmpEntry.getName().equals(entry.getName())){ 
+  				  if(!tmpEntry.getValue().isEmpty())
+  					  return tmpEntry;
+  			      return RegistryEntry.GetParentEntry(tmpEntry, entries);
+  		  } //end if
+  		} //end for
+  	  
+  	 //no parents found.
+  	 return null;
+    }
+*/
     public ResponseEntity<RegistryEntry> updateRegistryEntry(
 @ApiParam(value = "",required=true ) @PathVariable("id") String id
 
