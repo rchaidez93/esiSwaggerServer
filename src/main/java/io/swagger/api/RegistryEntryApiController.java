@@ -57,8 +57,8 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setConfidential(true);
     	   	addEntryToTable(entry);
     	
-    		for(int j = 1; j<4; j++){
-    			for(int k = 1; k<12; k++){
+    		for(int j = 1; j<5; j++){
+    			for(int k = 1; k<10; k++){
         			ttlcnt++;
         			id++;
         			RegistryEntry entrysub = new RegistryEntry();
