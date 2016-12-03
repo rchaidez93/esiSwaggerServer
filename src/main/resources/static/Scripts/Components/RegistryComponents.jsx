@@ -118,21 +118,39 @@ var RegistryApplication = React.createClass({
          return {
              isModalOpen: false,
              data:convertData([]),
+             treeData:[],
              filterData:{scope:'*',name:'*',value:'*',confidential:'*',sensitive:false,inheritance:false,count:100,offset:0},
             resultCount:0,
-             error:''
+             error:'',
+             view:'Panel'
           }; 
          
      }, 
      
-     
+     getTreeData:function(data)
+     {
+         var scopeIds = convertData(data).ScopeAssoc;
+          var newData = [];
+          for(key in scopeIds){
+              var pscope = key.substring(0,key.lastIndexOf('/'));
+              pscope = (typeof(pscope) == 'undefined' || pscope=='')?"#":"Scope_" + scopeIds[pscope];
+              scopeId = "Scope_" + scopeIds[key];
+              newData.push({id:scopeId,parent:pscope,text:key});
+          }
+         for(i=0;i<data.length;i++){
+             newData.push({id:data[i].id,parent:"Scope_" + scopeIds[data[i].scope],text:data[i].name})
+         }
+         
+        return newData;
+       
+     },
      handleDropEntry:function(e,ui){
          var srcScope = $(ui.draggable).find(".registryEntryScope").text();
          var destScope = $(e.target).find(".scopeTitle").text();
         // var destName=$(e.target).find(".nameTitle").text();
          var entryName = $(ui.draggable).find(".registryEntryName").text();
          if(srcScope==destScope) return false; //can't drag to same scope
-         alert(entryName)
+        
          var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(destScope) + "&confidential=*&name="+encodeURIComponent(entryName)+"&value=*&matchCase=false";
 
          $.ajax({
@@ -206,19 +224,23 @@ var RegistryApplication = React.createClass({
      
      //get data retrieves registry entries from server
      getData:function(filterData){
+         
+     
         searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(filterData.scope) + "&confidential=" + filterData.confidential + "&name=" + encodeURIComponent(filterData.name) + "&value=" + encodeURIComponent(filterData.value) + "&useInheritance=" + filterData.inheritance + "&matchCase=" + filterData.sensitive + "&offset=" + filterData.offset + "&count=" + filterData.count;
          $.ajax({
           url: searchurl,
           dataType: 'json',
           cache: false,
           success: function(data) {
-             // alert(JSON.stringify(data));
-              this.setState({data:convertData([]),isModalOpen:false})
-              var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
+             
+              var treeData = this.getTreeData(data.list);
               var newData = convertData(data.list);
+              this.setState({treeData:[],data:convertData([]),isModalOpen:false})
+              var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
+             
               newData.ScopeArray = this.sortByScope(newData.ScopeArray);
               newData = this.reIndexScopeArray(newData);
-              this.setState({data:newData,filterData:filterData,error:dataMessage,resultCount:data.totalCount,isModalOpen:false});
+              this.setState({treeData:treeData,data:newData,filterData:filterData,error:dataMessage,resultCount:data.totalCount,isModalOpen:false});
           }.bind(this),
           error: function(xhr, status, err) {
               var dataMessage = <ErrorMessage>{err.toString()}</ErrorMessage>
@@ -486,8 +508,12 @@ var RegistryApplication = React.createClass({
          this.setState({filterData:filterData,resultCount:this.state.resultCount-1});
          this.getData(filterData);
      },
+     changeView:function(viewname){
+         this.setState({view:viewname});
+         
+     },
     render: function() {
-       
+         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteScopeHandler={this.deleteScope} copyScopeHandler={this.copyScope} data={this.state.data}/>:<RegistryScopeTree url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteScopeHandler={this.deleteScope} copyScopeHandler={this.copyScope} data={this.state.treeData}/>
         return <div>
                 <a href="#" onClick={this.openCreateForm}><span className="glyphicon glyphicon-plus-sign" title="Add Entry"></span></a> 
                 <Modal isOpen={this.state.isModalOpen}>{this.state.ModalData}</Modal> 
@@ -495,7 +521,7 @@ var RegistryApplication = React.createClass({
                    <FilterForm data={this.state.filterData} onSubmit={this.searchEntries}/></RegistryEntryFilterPanel >
                    <ResultCount data={this.state.resultCount}/>
                  {this.state.error}
-                   <RegistryScopeList url={this.props.url} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteScopeHandler={this.deleteScope} copyScopeHandler={this.copyScope} data={this.state.data}/>
+                   {view}
                    <Pagination getNewPage={this.newPageHandler} resultCount={this.state.resultCount} offset={this.state.filterData.offset} numEntriesPerPage={this.state.filterData.count} />
                    
             </div>
@@ -551,11 +577,52 @@ var Pagination = React.createClass({
    } 
 });
 
+       
+var RegistryScopeTree = React.createClass({
+    getInitialState: function() { 
+        return {
+            data:[]
+        }; 
+    }, 
+    onPanelViewClick:function(e){
+     
+      this.props.changeView("Panel");
+    },
+    componentDidMount:function(){
+        $('#jstree_demo_div').jstree({ 'core' : {
+            'data' :this.props.data
+        } });
+        
+    },
+    
+    componentDidUpdate:function(prevProps,prevState)
+    {
+        alert(JSON.stringify(prevProps));
+        $('#jstree_demo_div').jstree(true).settings.core.data = [
+                                                                 { "id" : "ajson1", "parent" : "#", "text" : "Simple root node" },
+                                                                 { "id" : "ajson2", "parent" : "#", "text" : "Root node 2" },
+                                                                 { "id" : "ajson3", "parent" : "ajson2", "text" : "Child 1" },
+                                                                 { "id" : "ajson4", "parent" : "ajson2", "text" : "Child 2" },
+                                                              ]
+        $('#jstree_demo_div').jstree(true).refresh();
+        
+    },
+    render:function(){
+        return <div>
+        <button className="btn btn-default" type="button" onClick={this.onPanelViewClick}>Panel View</button><br />
+        <div id="jstree_demo_div">Loading Tree...</div>
+        </div>
+    }
+});
+       
 /* component that displays a categorized list of  Registry scopes*/
 var RegistryScopeList = React.createClass({
     
   
-    
+    onTreeViewClick:function(e){
+        
+        this.props.changeView("Tree");
+    },
   
     
     handleCopyScope: function(obj, entryData, oldscope,inherit){
@@ -585,6 +652,7 @@ var RegistryScopeList = React.createClass({
     
     render: function(){
         return(<div className="panel-group" id="">
+        <button className="btn btn-default" type="button" onClick={this.onTreeViewClick}>Tree View</button><br />
         {this.props.data.ScopeArray.map(function(scope,idx) {
               var boundCopyScope = this.handleCopyScope.bind(null,this);    
               var boundUpdateEntry = this.handleUpdateEntry.bind(null,this);

@@ -46,7 +46,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
     	int ttlcnt = 0;
-    	for(long i=1;i<2;i++){
+    	for(long i=1;i<5;i++){
     		ttlcnt++;
     		id++;
     		RegistryEntry entry = new RegistryEntry();
@@ -55,11 +55,10 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		entry.setValue("test value" + i);
     		entry.setScope("/Scope" + i);
     		entry.setConfidential(true);
-    	//entries.addListItem(entry);	
-    	addEntryToTable(entry);
+    	   	addEntryToTable(entry);
     	
-    		for(int j = 1; j<2; j++){
-    			for(int k = 1; k<2; k++){
+    		for(int j = 1; j<4; j++){
+    			for(int k = 1; k<12; k++){
         			ttlcnt++;
         			id++;
         			RegistryEntry entrysub = new RegistryEntry();
