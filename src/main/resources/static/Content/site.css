@@ -6,6 +6,11 @@ body {
     color: #fff
 }
 
+.treeView{
+	background-color:white!important;
+	background-image:"";
+}
+
 /* Set padding to keep content from hitting the edges */
 .body-content {
     padding-left: 15px;
