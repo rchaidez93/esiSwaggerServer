@@ -6,11 +6,6 @@ body {
     color: #fff
 }
 
-.treeView{
-	background-color:white!important;
-	background-image:"";
-}
-
 /* Set padding to keep content from hitting the edges */
 .body-content {
     padding-left: 15px;
@@ -18,12 +13,12 @@ body {
 }
 
 .droppableHighlight{
-	border:4px solid red!important;
+	border:5px solid red!important;
 }
 
 .activeDropable, registryscopeDropable{
-	border-color:blue!important;
-	background:grey!important;
+	border-color:#6C3365!important;
+	background:#d7e3f1!important;
 	color:green!important
 }
 
@@ -72,7 +67,17 @@ body {
         /*color: #5f9ea0;*/
         color:#fff;
         }
-
+.filter{
+		color:#460046;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        font-family: "Josefin Slab","Helvetica Neue",Helvetica,Arial,sans-serif;
+        font-size: 3em;
+        font-weight: 700;
+        line-height: normal;
+        
+       
+	
+}
  .address-bar {
         display: inherit;
         margin: 0;
@@ -134,7 +139,7 @@ body {
 input,
 select,
 textarea {
-    max-width: 280px;
+    max-width: 280;
 }
 
 
@@ -154,17 +159,17 @@ textarea {
 }
 
 /* Animation */
-.btn-lightblue{color:#460046;background-color:	#fff;border-color:#fff}
+.btn-lightblue{color:#fff;background-color:#460046;border-color:#460046}
  .btn-lightblue:hover,.btn-lightblue:focus,.btn-lightblue:active,.btn-lightblue.active,.open>
- .dropdown-toggle.btn-lightblue{color:#460046;background-color:#fff;border-color:#fff}
+ .dropdown-toggle.btn-lightblue{color:#fff;background-color:#460046;border-color:#460046}
  .btn-lightblue:active,.btn-lightblue.active,.open>.dropdown-toggle.btn-lightblue{background-image:none}
  .btn-lightblue.disabled,.btn-lightblue[disabled],fieldset[disabled] .btn-lightblue,.btn-lightblue.disabled:hover,
  .btn-lightblue[disabled]:hover,fieldset[disabled] .btn-lightblue:hover,.btn-lightblue.disabled:focus,
  .btn-lightblue[disabled]:focus,fieldset[disabled] .btn-lightblue:focus,.btn-lightblue.disabled:active,
  .btn-lightblue[disabled]:active,fieldset[disabled] .btn-lightblue:active,.btn-lightblue.disabled.active,
  .btn-lightblue[disabled].active,fieldset[disabled] 
- .btn-lightblue.active{background-color:#fff;border-color:#fff}.btn-lightblue 
- .badge{color:#460046;background-color:#fff}
+ .btn-lightblue.active{background-color:#460046;border-color:#460046}.btn-lightblue 
+ .badge{color:#fff;background-color:#460046}
  
  .btn-pink{color:#fff;background-color:#ff7575;border-color:#ff7575}
  .btn-pink:hover,.btn-pink:focus,.btn-pink:active,.btn-pink.active,.open>
@@ -178,17 +183,17 @@ textarea {
  .btn-pink.active{background-color:#ff7575;border-color:#ff7575}.btn-pink 
  .badge{color:#fff;background-color:#ff7575}
  
-  .btn-darkblue{color:#efe9d4;background-color:#b5c07a;border-color:#b5c07a}
+  .btn-darkblue{color:#fff;background-color:#72b8c9;border-color:#72b8c9}
  .btn-darkblue:hover,.btn-darkblue:focus,.btn-darkblue:active,.btn-darkblue.active,.open>
- .dropdown-toggle.btn-darkblue{color:#efe9d4;background-color:#b5c07a;border-color:#b5c07a}
+ .dropdown-toggle.btn-darkblue{color:#fff;background-color:#72b8c9;border-color:#72b8c9}
  .btn-darkblue:active,.btn-darkblue.active,.open>.dropdown-toggle.btn-darkblue{background-image:none}
  .btn-darkblue.disabled,.btn-darkblue[disabled],fieldset[disabled] .btn-darkblue,.btn-darkblue.disabled:hover,
  .btn-darkblue[disabled]:hover,fieldset[disabled] .btn-darkblue:hover,.btn-darkblue.disabled:focus,
  .btn-darkblue[disabled]:focus,fieldset[disabled] .btn-darkblue:focus,.btn-darkblue.disabled:active,
  .btn-darkblue[disabled]:active,fieldset[disabled] .btn-darkblue:active,.btn-darkblue.disabled.active,
  .btn-darkblue[disabled].active,fieldset[disabled] 
- .btn-darkblue.active{background-color:#b5c07a;border-color:#b5c07a}.btn-darkblue 
- .badge{color:#efe9d4;background-color:#b5c07a}
+ .btn-darkblue.active{background-color:#72b8c9;border-color:#72b8c9}.btn-darkblue 
+ .badge{color:#fff;background-color:#72b8c9}
  
  .btn-yellow{color:#ac7447;background-color:#f4c7a7;border-color:#f4c7a7}
  .btn-yellow:hover,.btn-yellow:focus,.btn-yellow:active,.btn-yellow.active,.open>
@@ -227,7 +232,7 @@ textarea {
 	color:black;
 	background-image:url(../img/out.jpg);
 	/*background-color:#fffcf1;*/
-	
+	height:-30px;
 	padding:30px;
 }
 .registryentryheader{

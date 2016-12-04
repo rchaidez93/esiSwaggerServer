@@ -880,7 +880,7 @@ var RegistryScope = React.createClass({
                             { isModalOpen: true,
                                 ModalData:<div><ConfirmationForm onCancel={this.closeModal} onSubmit={this.RestrictedDeleteScopeHandler} header={<h3>Confirm Delete Scope</h3>}>
                                
-                               <p>Are you sure you want to delete this scope {this.props.scope}</p>
+                               <p>Are you sure you want to delete this scope {this.props.scope}<br /><br /></p>
                               
                                 </ConfirmationForm></div>}
                             )
@@ -1187,6 +1187,7 @@ var CopyScopeForm = React.createClass({
            scope:e.target.checked?this.props.scope + "/newScope":"",
            inherit:e.target.checked,
            errormessage:''},function(){
+               alert(this.state.scope)
                var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name=*&value=*&matchCase=false";
                    $.ajax({
                        url: searchurl,
@@ -1211,6 +1212,7 @@ var CopyScopeForm = React.createClass({
 
 	     this.setState({scope: e.target.value,errormessage:'',disabledSubmit:false},function(){
 	         if(this.state.scope !=''){
+	             alert(this.state.scope)
 	             var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name=*&value=*&matchCase=false";
 	             $.ajax({
 	                 url: searchurl,
@@ -1246,7 +1248,7 @@ var CopyScopeForm = React.createClass({
               var entriestocopy = scopeData.ScopeArray[scopeData.ScopeAssoc[this.props.scope]].regentries;
              
              for(i=0;i<entriestocopy.length;i++){
-                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:this.state.inherit==true?"":entriestocopy[i].value}
+                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:entriestocopy[i].value}
                  destScope.regentries.push(entry);
                  
             }
@@ -1288,7 +1290,7 @@ var CopyScopeForm = React.createClass({
     <div className="form-group row">
       <label for="txtScope" className="col-sm-2 col-form-label">Scope</label>
       <div className="col-sm-10">
-        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><input type="checkbox" onClick={this.handleInheritParentScope}/>Inherit from Parent
+        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><br /><input type="checkbox" onClick={this.handleInheritParentScope}/>     Make this a child
       </div>
     </div>
           
@@ -1608,7 +1610,7 @@ var FilterForm = React.createClass({
           </div>
           <div>
         	<div>
-        	<button type = "button" className = "btn btn-primary pull-right" onClick = {this.clearInput}>Clear</button>
+        	<button type = "button" className = "btn btn-lightblue pull-right" onClick = {this.clearInput}>Clear</button>
         	</div>
         </div>
       </form>);
@@ -1681,13 +1683,47 @@ var RegistryEntryRead = React.createClass({
   }
 });
 
+var Child = React.createClass({
+    
+    render:function(){
+        
+        return(<div>{this.props.data.value}</div>);
+        }
+});
+
 /*
  * this is the display view of a registry entry
  */
 var RegistryEntryDispForm= React.createClass({
+    getInitialState: function(){
+        return {name:'*',
+            showValueLinkLabel:'show',
+            value:'******',
+            valueVisible:!this.props.data.confidential
+        };
     
+    },
+    onShowValueClick: function(e) {
+        e.preventDefault();
+        if(!this.state.valueVisible){
+            this.setState({valueVisible: !this.state.valueVisible,showValueLinkLabel:"show",value:"*******"});
+        } else {
+            this.setState({valueVisible: !this.state.valueVisible,showValueLinkLabel:"hide",value:this.props.data.value});     
+        }
+       
+    },
   render: function() {
-    var confidential= this.props.data.confidential?"checked":"";  
+      var confidential= this.props.data.confidential?"checked":"";
+      
+      if(confidential == "checked"){
+          var confbutton = <span> {this.state.value}&nbsp;<a href="#" onClick= {this.onShowValueClick}>{this.state.showValueLinkLabel}</a></span>
+      }
+      else
+      {
+          var confbutton = <div>{this.props.data.value}</div>
+      }
+  
+      
     return <div class="form-horizontal">
     <div class="form-group hidden">
     <label class="control-label col-sm-2">Scope:</label>&nbsp;<span className="registryEntryScope">{this.props.data.scope}</span>
@@ -1701,7 +1737,7 @@ var RegistryEntryDispForm= React.createClass({
   </div>
   
   <div class="form-group">
-  <label class="control-label col-sm-2">Value:</label> {this.props.data.value}
+  <label class="control-label col-sm-2">Value:</label> {confbutton}
   
 </div>
 
@@ -1759,14 +1795,15 @@ var DragEntryPromptForm = React.createClass({
     
     render:function(){
                 return <div>
-                <p>You just dragged {this.props.srcEntry.name} to {this.props.destScope}. How do you want to handle this?</p>
-                <div className="flex-button-container">
-                <button onClick={this.onCopyClicked} className="btn btn-primary flex-button-item">Copy</button>
-                <button onClick={this.onMoveClicked} className="btn btn-success flex-button-item">Move</button>
-                <button onClick={this.onCancelClicked} className="btn btn-danger flex-button-item">Cancel</button>  
+                <p>You just dragged {this.props.srcEntry.name} to {this.props.destScope}. How do you want to handle this?<br /><br /></p>
+                <div className="form-group row">
+                <div className="offset-sm-2 col-sm-9">
+                <button onClick={this.onCancelClicked} className="btn btn-warning pull-right">Cancel</button> 
+                <button onClick={this.onCopyClicked} className="btn btn-darkblue pull-right">Copy</button>
+                <button onClick={this.onMoveClicked} className="btn btn-pink pull-right">Move</button>
                 </div>
-                </div> 
-               
+               </div>
+               </div>
               
             }
   
