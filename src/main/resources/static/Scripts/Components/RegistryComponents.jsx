@@ -1187,6 +1187,7 @@ var CopyScopeForm = React.createClass({
            scope:e.target.checked?this.props.scope + "/newScope":"",
            inherit:e.target.checked,
            errormessage:''},function(){
+               alert(this.state.scope)
                var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name=*&value=*&matchCase=false";
                    $.ajax({
                        url: searchurl,
@@ -1211,6 +1212,7 @@ var CopyScopeForm = React.createClass({
 
 	     this.setState({scope: e.target.value,errormessage:'',disabledSubmit:false},function(){
 	         if(this.state.scope !=''){
+	             alert(this.state.scope)
 	             var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.state.scope) + "&confidential=*&name=*&value=*&matchCase=false";
 	             $.ajax({
 	                 url: searchurl,
@@ -1246,7 +1248,7 @@ var CopyScopeForm = React.createClass({
               var entriestocopy = scopeData.ScopeArray[scopeData.ScopeAssoc[this.props.scope]].regentries;
              
              for(i=0;i<entriestocopy.length;i++){
-                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:this.state.inherit==true?"":entriestocopy[i].value}
+                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:entriestocopy[i].value}
                  destScope.regentries.push(entry);
                  
             }
@@ -1288,7 +1290,7 @@ var CopyScopeForm = React.createClass({
     <div className="form-group row">
       <label for="txtScope" className="col-sm-2 col-form-label">Scope</label>
       <div className="col-sm-10">
-        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><input type="checkbox" onClick={this.handleInheritParentScope}/>Inherit from Parent
+        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><input type="checkbox" onClick={this.handleInheritParentScope}/>Make this a child
       </div>
     </div>
           
