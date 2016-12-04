@@ -1680,13 +1680,31 @@ var RegistryEntryRead = React.createClass({
 
   }
 });
-
+var Child = React.createClass({
+	 
+	render:function(){
+		
+		return(<div><div>this.props.data.value</div></div>);
+		}
+});
+	
 /*
  * this is the display view of a registry entry
  */
 var RegistryEntryDispForm= React.createClass({
     
+	getInitialState:function(){
+    	return{childVisible: false};
+    },
   render: function() {
+	  var conf = this.props.data.confidential?"checked":"";
+	if(conf == "checked"){
+		var confbutton = <input type="button" value = "show/hide" onClick = {this.onClick} />
+	}
+	else
+	{
+		var confbutton = <div>{this.props.data.value}</div>
+	}
     var confidential= this.props.data.confidential?"checked":"";  
     return <div class="form-horizontal">
     <div class="form-group hidden">
@@ -1701,7 +1719,7 @@ var RegistryEntryDispForm= React.createClass({
   </div>
   
   <div class="form-group">
-  <label class="control-label col-sm-2">Value:</label> {this.props.data.value}
+  <label class="control-label col-sm-2">Value: </label>{confbutton} {this.state.childVisible ? <Child /> : null }
   
 </div>
 
@@ -1713,6 +1731,16 @@ var RegistryEntryDispForm= React.createClass({
     
    
 
+  },
+  onClick: function() {
+	  var password = "password";
+	  var string = prompt("Please enter the password", "");
+	  if(string != password){
+		  alert("wrong password!");
+	  }
+	  else{
+		  this.setState({childVisible: !this.state.childVisible});
+	  }
   }
 });
 
