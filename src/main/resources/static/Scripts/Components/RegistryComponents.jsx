@@ -129,6 +129,19 @@ var RegistryApplication = React.createClass({
          
      }, 
      
+     getFlatData:function(data){
+       if(typeof(data.ScopeArray)!='undefined'){
+           var flatData = [];
+           for(i=0;i<data.ScopeArray.length;i++){
+             for(j=0;j<data.ScopeArray[i].regentries.length;j++)
+                 {
+                     flatData.push(data.ScopeArray[i].regentries[j]);
+                 }
+           }
+           return flatData;
+       }  
+       return null;
+     },
      getTreeData:function(data)
      {
          var scopeIds = convertData(data).ScopeAssoc;
@@ -239,7 +252,7 @@ var RegistryApplication = React.createClass({
              
               var treeData = this.getTreeData(data.list);
               var newData = convertData(data.list);
-           //   this.setState({data:convertData([]),isModalOpen:false})
+              this.setState({data:convertData([]),isModalOpen:false})
               var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
              
               newData.ScopeArray = this.sortByScope(newData.ScopeArray);
@@ -355,12 +368,12 @@ var RegistryApplication = React.createClass({
          newData.ScopeArray.push({scope:newScope,regentries:data}); //add to end of array
          newData.ScopeArray = this.sortByScope(newData.ScopeArray); //sort scope array
          newData = this.reIndexScopeArray(newData);
-        
-       this.setState({data:newData,resultCount:this.state.resultCount + newData.ScopeArray.length})
+         var newTreeData = this.getTreeData(this.getFlatData(newData));
+         this.setState({data:newData,resultCount:this.state.resultCount + newData.ScopeArray.length, treeData:newTreeData})
      },
      
          
-     deleteScope:function(scope){
+     deleteScopeRestricted:function(scope){
          var newData = this.state.data; 
          var deleteArr = [];
          
@@ -396,6 +409,45 @@ var RegistryApplication = React.createClass({
          
      },
      
+     deleteScopeCascaded:function(scope){
+         var newData = this.state.data; 
+         var deleteArr = [];
+         
+         searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(scope + "/*") ;
+         
+         $.ajax({
+          url: searchurl,
+          dataType: 'json',
+          cache: false,
+          success: function(data) {
+              
+            for(i = 0; i< data.list.length; i++){
+                deleteArr.push(data.list[i].id);
+             }
+            $.ajax({
+                  url: this.props.url + "/registryEntry/" + deleteArr.join(),
+                  type:'DELETE',
+                  cache: false,
+                  success: function(data) { 
+                     this.deleteScopeRestricted(scope);
+                     this.getData(this.state.filterData);
+                  }.bind(this),
+                  error: function(xhr, status, err) {
+                      this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});
+                    console.error(this.props.url, status, err.toString());
+                  }.bind(this)
+                });
+           
+          }.bind(this),
+          error: function(xhr, status, err) {
+              this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});
+            console.error(this.props.url, status, err.toString());
+          }.bind(this)
+        });
+         
+     },
+     
+     
      searchEntries:function(searchData){
          searchData.offset = this.state.filterData.offset;
         this.getData(searchData); 
@@ -417,8 +469,8 @@ var RegistryApplication = React.createClass({
                  break;
             }
         }
-        
-        this.setState({data: newData,error:''});
+        var newTreeData = this.getTreeData(this.getFlatData(newData));
+        this.setState({data: newData,error:'',treeData:newTreeData});
          this.closeModal();
      },
      
@@ -430,7 +482,8 @@ var RegistryApplication = React.createClass({
              newData.ScopeAssoc[data.scope] = newData.ScopeArray.length-1;
          }
          newData.ScopeArray[newData.ScopeAssoc[data.scope]].regentries.push(data);
-        this.setState({data: newData,resultCount:this.state.resultCount+1,error:''});
+         var newTreeData = this.getTreeData(this.getFlatData(newData));
+        this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1,error:''});
         this.closeModal();
         
          
@@ -461,7 +514,9 @@ var RegistryApplication = React.createClass({
               type:'DELETE',
               cache: false,
               success: function(data) {
-                 this.setState(newdata);
+                  var newTreeData = this.getTreeData(this.getFlatData(newdata));
+                 ///ggg
+                 this.setState({data:newdata,treeData:newTreeData});
               }.bind(this),
               error: function(xhr, status, err) {
               this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});  
@@ -495,8 +550,8 @@ var RegistryApplication = React.createClass({
                 newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.push(data.list[i]);
                 resultCount++;
             }
-            
-            this.setState({data: newData,resultCount:this.state.resultCount+1}); 
+            var newTreeData = this.getTreeData(newData);
+            this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1}); 
             
             
          }.bind(this),
@@ -524,7 +579,7 @@ var RegistryApplication = React.createClass({
      },
      
     render: function() {
-         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteScopeHandler={this.deleteScope} copyScopeHandler={this.copyScope} data={this.state.data}/>:<div></div>
+         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted} copyScopeHandler={this.copyScope} data={this.state.data}/>:<div></div>
 
         return <div>
                 {this.state.pscope}<br />
@@ -650,8 +705,10 @@ var RegistryScopeTree = React.createClass({
             "file" : {"icon" : "glyphicon glyphicon-file"}
         }
           
+        }).on('click', function(event){
+            event.preventDefault();
+            event.stopPropagation();
         });
-        
     },
     
     componentWillReceiveProps:function(nextProps){
@@ -685,8 +742,12 @@ var RegistryScopeList = React.createClass({
         
         this.props.copyScopeHandler(entryData, oldscope,inherit)
     },
-    handleDeleteScope: function(obj,scope){
-        this.props.deleteScopeHandler(scope);
+    handleRestrictedDeleteScope: function(obj,scope){
+        this.props.deleteRestrictedScopeHandler(scope);
+    },
+    
+    handleCascadeDeleteScope: function(obj,scope){
+        this.props.deleteCascadedScopeHandler(scope);
     },
     handleDeleteEntry: function(obj,entryId){
         this.props.deleteEntryHandler(entryId);
@@ -712,7 +773,8 @@ var RegistryScopeList = React.createClass({
         {this.props.data.ScopeArray.map(function(scope,idx) {
               var boundCopyScope = this.handleCopyScope.bind(null,this);    
               var boundUpdateEntry = this.handleUpdateEntry.bind(null,this);
-              var boundDeleteScope = this.handleDeleteScope.bind(null,this.scopes);
+              var boundDeleteScopeRestricted = this.handleRestrictedDeleteScope.bind(null,this.scopes);
+              var boundDeleteScopeCascaded = this.handleCascadeDeleteScope.bind(null,this.scopes);
               var boundDeleteEntry = this.handleDeleteEntry.bind(null,this);
               var boundAddEntry = this.handleAddEntry.bind(null,this);
               var boundUpdateScope = this.handleUpdateScope.bind(null,this);
@@ -721,7 +783,8 @@ var RegistryScopeList = React.createClass({
                           <RegistryScope handleDeleteEntry={boundDeleteEntry}
                             handleUpdateEntry={boundUpdateEntry}
                             handleAddEntry = {boundAddEntry}
-                            handleDeleteScope={boundDeleteScope}
+                            handleRestrictedDeleteScope={boundDeleteScopeRestricted}
+                            handleCascadedDeleteScope={boundDeleteScopeCascaded}
                             updateScope={boundUpdateScope}
                             data={scope.regentries}
                             key={idx}
@@ -784,10 +847,16 @@ var RegistryScope = React.createClass({
        
     },
     
-    onHandleDeleteScope:function(){
+    CascadedDeleteScopeHandler:function(){
         this.closeModal();
-        this.props.handleDeleteScope(this.props.scope)
+        this.props.handleCascadedDeleteScope(this.props.scope)
     },
+    
+    RestrictedDeleteScopeHandler:function(){
+        this.closeModal();
+        this.props.handleRestrictedDeleteScope(this.props.scope)
+    },
+    
     
     onHandleDeleteEntry:function(entryId){
         this.props.handleDeleteEntry(entryId)
@@ -799,14 +868,40 @@ var RegistryScope = React.createClass({
     
     confirmDeleteScope:function(e){
         e.preventDefault();
+       
+        var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.props.scope + "/*") + "&confidential=*&name=*&value=*&matchCase=true";
+        $.ajax({
+            url: searchurl,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                if(data.totalCount==0){
+                    this.setState(
+                            { isModalOpen: true,
+                                ModalData:<div><ConfirmationForm onCancel={this.closeModal} onSubmit={this.RestrictedDeleteScopeHandler} header={<h3>Confirm Delete Scope</h3>}>
+                               
+                               <p>Are you sure you want to delete this scope {this.props.scope}</p>
+                              
+                                </ConfirmationForm></div>}
+                            )
+                } else {
+                    this.setState({ isModalOpen: true,
+                        ModalData:<div className="panel panel-default">
+                    <div className="panel-heading panel-danger"><h3>WARNING!!</h3></div>
+                    <div className="panel-body registryentrybody">
+                        <DeleteParentScopePromptForm onCascadedDelete={this.CascadedDeleteScopeHandler} onRestrictedDelete={this.RestrictedDeleteScopeHandler} onCancel={this.closeModal}/>
+                    </div>
+                    <div className="panel-footer registryentryfooter">&nbsp;</div>
+                </div>});            
+                }
+            }.bind(this),
+            error: function(xhr, status, err) {
+                this.setState({errormessage:status + xhr.statusText});
+            }.bind(this)
+        });
+    
         
         
-        this.setState({ isModalOpen: true,
-           ModalData:<div><ConfirmationForm onCancel={this.closeModal} onSubmit={this.onHandleDeleteScope} header={<h3>Confirm Delete Scope</h3>}>
-          
-          <p>Are you sure you want to delete this scope {this.props.idx}</p>
-         
-           </ConfirmationForm></div>});
     
     },
     
@@ -1669,12 +1764,45 @@ var DragEntryPromptForm = React.createClass({
                 <button onClick={this.onCopyClicked} className="btn btn-primary flex-button-item">Copy</button>
                 <button onClick={this.onMoveClicked} className="btn btn-success flex-button-item">Move</button>
                 <button onClick={this.onCancelClicked} className="btn btn-danger flex-button-item">Cancel</button>  
+                </div>
+                </div> 
+               
+              
+            }
+  
+    });
+
+
+var DeleteParentScopePromptForm = React.createClass({
+    
+    
+    //srcEntry={srcEntry} destScope={destScope}
+    onCascadeClicked:function(e){
+        this.props.onCascadedDelete(this.props.scope);
+    },
+    onRestrictClicked:function(e){
+        this.props.onRestrictedDelete(this.props.scope);
+    },
+    onCancelClicked:function(e){
+        this.props.onCancel();
+    },
+    
+    render:function(){
+                return <div>
+                <p>You are attempting to delete a scope that has children scopes. How do you want to handle this.</p>
+                <ul>
+                <li>Click Cascade Delete to delete all children scopes under this scope</li>
+                <li>Click Restricted Delete to preserve the children as orphans</li>
+                <li>Click Cancel if you do not want to perform this delete</li>
+                </ul>
+                <div className="flex-button-container">
+                <button onClick={this.onCascadeClicked} className="btn btn-primary flex-button-item">Cascade Delete</button>
+                <button onClick={this.onRestrictClicked} className="btn btn-success flex-button-item">Restricted Delete</button>
+                <button onClick={this.onCancelClicked} className="btn btn-danger flex-button-item">Cancel</button>  
               </div>
                 </div> 
             }
   
     });
 
-
-  
 
