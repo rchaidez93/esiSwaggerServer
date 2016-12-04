@@ -129,6 +129,19 @@ var RegistryApplication = React.createClass({
          
      }, 
      
+     getFlatData:function(data){
+       if(typeof(data.ScopeArray)!='undefined'){
+           var flatData = [];
+           for(i=0;i<data.ScopeArray.length;i++){
+             for(j=0;j<data.ScopeArray[i].regentries.length;j++)
+                 {
+                     flatData.push(data.ScopeArray[i].regentries[j]);
+                 }
+           }
+           return flatData;
+       }  
+       return null;
+     },
      getTreeData:function(data)
      {
          var scopeIds = convertData(data).ScopeAssoc;
@@ -355,8 +368,8 @@ var RegistryApplication = React.createClass({
          newData.ScopeArray.push({scope:newScope,regentries:data}); //add to end of array
          newData.ScopeArray = this.sortByScope(newData.ScopeArray); //sort scope array
          newData = this.reIndexScopeArray(newData);
-        
-       this.setState({data:newData,resultCount:this.state.resultCount + newData.ScopeArray.length})
+         var newTreeData = this.getTreeData(this.getFlatData(newData));
+         this.setState({data:newData,resultCount:this.state.resultCount + newData.ScopeArray.length, treeData:newTreeData})
      },
      
          
@@ -456,8 +469,8 @@ var RegistryApplication = React.createClass({
                  break;
             }
         }
-        
-        this.setState({data: newData,error:''});
+        var newTreeData = this.getTreeData(this.getFlatData(newData));
+        this.setState({data: newData,error:'',treeData:newTreeData});
          this.closeModal();
      },
      
@@ -469,7 +482,8 @@ var RegistryApplication = React.createClass({
              newData.ScopeAssoc[data.scope] = newData.ScopeArray.length-1;
          }
          newData.ScopeArray[newData.ScopeAssoc[data.scope]].regentries.push(data);
-        this.setState({data: newData,resultCount:this.state.resultCount+1,error:''});
+         var newTreeData = this.getTreeData(this.getFlatData(newData));
+        this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1,error:''});
         this.closeModal();
         
          
@@ -500,7 +514,9 @@ var RegistryApplication = React.createClass({
               type:'DELETE',
               cache: false,
               success: function(data) {
-                 this.setState(newdata);
+                  var newTreeData = this.getTreeData(this.getFlatData(newdata));
+                 ///ggg
+                 this.setState({data:newdata,treeData:newTreeData});
               }.bind(this),
               error: function(xhr, status, err) {
               this.setState({error:<ErrorMessage>{"An unexpected error occurred: " + xhr.statusText}</ErrorMessage>});  
@@ -534,8 +550,8 @@ var RegistryApplication = React.createClass({
                 newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.push(data.list[i]);
                 resultCount++;
             }
-            
-            this.setState({data: newData,resultCount:this.state.resultCount+1}); 
+            var newTreeData = this.getTreeData(newData);
+            this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1}); 
             
             
          }.bind(this),
@@ -689,8 +705,10 @@ var RegistryScopeTree = React.createClass({
             "file" : {"icon" : "glyphicon glyphicon-file"}
         }
           
+        }).on('click', function(event){
+            event.preventDefault();
+            event.stopPropagation();
         });
-        
     },
     
     componentWillReceiveProps:function(nextProps){
