@@ -887,7 +887,7 @@ var RegistryScope = React.createClass({
                 } else {
                     this.setState({ isModalOpen: true,
                         ModalData:<div className="panel panel-default">
-                    <div className="panel-heading panel-danger"><h3>WARNING!!</h3></div>
+                    <div className="panel-heading registryentryheader"><h3>WARNING!!</h3></div>
                     <div className="panel-body registryentrybody">
                         <DeleteParentScopePromptForm onCascadedDelete={this.CascadedDeleteScopeHandler} onRestrictedDelete={this.RestrictedDeleteScopeHandler} onCancel={this.closeModal}/>
                     </div>
@@ -1830,12 +1830,16 @@ var DeleteParentScopePromptForm = React.createClass({
                 <ul>
                 <li>Click Cascade Delete to delete all children scopes under this scope</li>
                 <li>Click Restricted Delete to preserve the children as orphans</li>
-                <li>Click Cancel if you do not want to perform this delete</li>
+                <li>Click Cancel if you do not want to perform this delete<br /></li>
                 </ul>
-                <div className="flex-button-container">
-                <button onClick={this.onCascadeClicked} className="btn btn-primary flex-button-item">Cascade Delete</button>
-                <button onClick={this.onRestrictClicked} className="btn btn-success flex-button-item">Restricted Delete</button>
-                <button onClick={this.onCancelClicked} className="btn btn-danger flex-button-item">Cancel</button>  
+                <br />
+                <div className="form-group row">
+                <div className="offset-sm-10 col-sm-10">
+                <button onClick={this.onCancelClicked} className="btn btn-warning pull-right">Cancel</button> 
+                <button onClick={this.onCascadeClicked} className="btn btn-pink pull-right">Cascade Delete</button>
+                <button onClick={this.onRestrictClicked} className="btn btn-darkblue pull-right">Restricted Delete</button>
+                 
+              </div>
               </div>
                 </div> 
             }
