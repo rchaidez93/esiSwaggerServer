@@ -1,6 +1,6 @@
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
-/* Styles used in React */
+/* Styles used in React  */
 var collapsePanelLink={
     cursor:'pointer'
 }
