@@ -241,8 +241,15 @@ textarea {
 	
 	
 }
+
+.registryentryheader-pink
+{
+	background-color:#a3bbbb!important;
+	color:#FF5809!important;
+}
 .registryentryfooter{
-	background-color: #687f5f!important;
+	/*background-color: #687f5f!important;*/
+	background-color: #a3bbbb!important;
 	margin: 0;
 	padding:15px;
 }
