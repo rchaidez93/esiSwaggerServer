@@ -364,7 +364,6 @@ var RegistryApplication = React.createClass({
      }, 
      
      copyScope: function(data,newScope,inherit){
-         alert("copyscope: " + JSON.stringify(data));
          var newData = this.state.data;
          newData.ScopeArray.push({scope:newScope,regentries:data}); //add to end of array
          newData.ScopeArray = this.sortByScope(newData.ScopeArray); //sort scope array
@@ -476,7 +475,6 @@ var RegistryApplication = React.createClass({
      },
      
      addEntry:function(data){
-         alert(JSON.stringify(data))
          var newData = this.state.data;
          if(typeof(newData.ScopeAssoc[data.scope]) == 'undefined'){
              newData.ScopeArray.push({scope:data.scope,regentries:[]});
@@ -486,9 +484,6 @@ var RegistryApplication = React.createClass({
          var newTreeData = this.getTreeData(this.getFlatData(newData));
         this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1,error:''});
         this.closeModal();
-        
-         
-      
      },
      
     deleteEntry:function(entryid){
@@ -531,7 +526,6 @@ var RegistryApplication = React.createClass({
     
      
      getScopeEntries:function(scope){
-         alert("scope: " + scope)
          var newData = this.state.data;
          var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(scope) + "&confidential=*&name=*&value=*&matchCase=false";
         $.ajax({
@@ -1072,7 +1066,6 @@ var RegistryScope = React.createClass({
     },
     
     onHandleCopyScopeSubmit:function(data,newScope,inherit){
-        alert("copyscopedata: " + JSON.stringify(data));
         this.closeModal();
         this.props.handleCopyScope(data,newScope,inherit);
        //TODO add copy functionality;
