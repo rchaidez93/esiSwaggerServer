@@ -528,6 +528,7 @@ var RegistryApplication = React.createClass({
      getScopeEntries:function(scope){
          var newData = this.state.data;
          var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(scope) + "&confidential=*&name=*&value=*&matchCase=false";
+        
         $.ajax({
          url: searchurl,
          dataType: 'json',
@@ -535,17 +536,20 @@ var RegistryApplication = React.createClass({
          success: function(data) {
             
             var resultCount = this.state.resultCount;
-            
-            for(var i = 0; i< newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.length; i++){
+            var scopeentrycnt = newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.length;
+            for(var i = 0; i< scopeentrycnt; i++){
+                
                 newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.splice(0,1);
                 resultCount--;
             }
             
-            for(var i = 0; i< data.list.length; i++){
+            for(var i = 0; i < data.list.length; i++){
                 newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.push(data.list[i]);
                 resultCount++;
             }
-            var newTreeData = this.getTreeData(getFlatData(newData));
+            
+         
+            var newTreeData = this.getTreeData(this.getFlatData(newData));
             this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1}); 
             
             
@@ -574,7 +578,7 @@ var RegistryApplication = React.createClass({
      },
      
     render: function() {
-         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted} copyScopeHandler={this.copyScope} data={this.state.data}/>:<div></div>
+         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted} copyScopeHandler={this.copyScope} filterData={this.state.filterData} data={this.state.data}/>:<div></div>
 
         return <div>
                 {this.state.pscope}<br />
@@ -804,7 +808,7 @@ var RegistryScopeTree = React.createClass({
        } else {
            var pNode = $('#' + this.props.id).jstree(true).get_node(node.parent);
            name=node.text
-           scope=pNode.text + "*"
+           scope=pNode.text
        }
        var filterData = {name:name,value:value,scope:scope,confidential:confidential,inheritance:inheritance,sensitive:sensitive,count:count,offset:0 };
        var evt =  window.event || event;
@@ -1014,6 +1018,7 @@ var RegistryScopeList = React.createClass({
                             updateScope={boundUpdateScope}
                             data={scope.regentries}
                             key={idx}
+                            filterData={this.props.filterData}
                             url={this.props.url}
                             idx={"scope" +idx}
                             scope={scope.scope}
@@ -1146,8 +1151,9 @@ var RegistryScope = React.createClass({
     
    
     ShowAll:function(e){
-        e.preventDefault();
-        var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent($(e.target).text()) + "&confidential=*&name=*&value=*&matchCase=false";
+       // e.preventDefault();
+        
+        searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.props.filterData.scope) + "&confidential=" + this.props.filterData.confidential + "&name=" + encodeURIComponent(this.props.filterData.name) + "&value=" + encodeURIComponent(this.props.filterData.value) + "&useInheritance=" + this.props.filterData.inheritance + "&matchCase=" + this.props.filterData.sensitive + "&offset=" + this.props.filterData.offset + "&count=" + this.props.filterData.count;
        
         $.ajax({
          url: searchurl,
