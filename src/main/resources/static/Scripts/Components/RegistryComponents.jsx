@@ -1976,7 +1976,7 @@ var RegistryEntryDispForm= React.createClass({
  */
 var RegistryEntryFilterPanel = React.createClass({
     render: function(){
-        return <div><nav id="myNavmenu" style={filterPanelStyle} className="navmenu navmenu-default navmenu-fixed-left offcanvas" role="navigation">
+        return <div><nav id="myNavmenu" style={filterPanelStyle} className="navmenu navmenu-fixed-left offcanvas" role="navigation">
          
          {this.props.children}
         
