@@ -241,21 +241,18 @@ var RegistryApplication = React.createClass({
      
      //get data retrieves registry entries from server
      getData:function(filterData){
-         
-     
         searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(filterData.scope) + "&confidential=" + filterData.confidential + "&name=" + encodeURIComponent(filterData.name) + "&value=" + encodeURIComponent(filterData.value) + "&useInheritance=" + filterData.inheritance + "&matchCase=" + filterData.sensitive + "&offset=" + filterData.offset + "&count=" + filterData.count;
          $.ajax({
           url: searchurl,
           dataType: 'json',
           cache: false,
           success: function(data) {
-             
               var treeData = this.getTreeData(data.list);
               var newData = convertData(data.list);
               this.setState({data:convertData([]),isModalOpen:false})
               var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
              
-              newData.ScopeArray = this.sortByScope(newData.ScopeArray);
+             // newData.ScopeArray = this.sortByScope(newData.ScopeArray);
               newData = this.reIndexScopeArray(newData);
               this.setState({treeData:treeData,data:newData,filterData:filterData,error:dataMessage,resultCount:data.totalCount,isModalOpen:false});
           }.bind(this),
@@ -364,12 +361,7 @@ var RegistryApplication = React.createClass({
      }, 
      
      copyScope: function(data,newScope,inherit){
-         var newData = this.state.data;
-         newData.ScopeArray.push({scope:newScope,regentries:data}); //add to end of array
-         newData.ScopeArray = this.sortByScope(newData.ScopeArray); //sort scope array
-         newData = this.reIndexScopeArray(newData);
-         var newTreeData = this.getTreeData(this.getFlatData(newData));
-         this.setState({data:newData,resultCount:this.state.resultCount + newData.ScopeArray.length, treeData:newTreeData})
+         this.getData(this.state.filterData);
      },
      
          
@@ -449,40 +441,18 @@ var RegistryApplication = React.createClass({
      
      
      searchEntries:function(searchData){
-         searchData.offset = this.state.filterData.offset;
+         searchData.offset = 0;
+         //this.state.filterData.offset;
         this.getData(searchData); 
      },
      
      updateEntry:function(entryData){
-         
-        var newData = this.state.data;
-        if(typeof(newData.ScopeAssoc[entryData.scope]) == 'undefined'){ 
-            newData.ScopeArray.push({scope:entryData.scope,regentries:[entryData]});
-            newData.ScopeArray = this.sortByScope(newData.ScopeArray);
-            newData = this.reIndexScopeArray(newData);
-        }
-        
-        var regentries =  newData.ScopeArray[newData.ScopeAssoc[entryData.scope]].regentries
-        for(var i = 0; i<regentries.length; i++){
-            if(regentries[i].id == entryData.id){
-                regentries[i] = entryData;
-                 break;
-            }
-        }
-        var newTreeData = this.getTreeData(this.getFlatData(newData));
-        this.setState({data: newData,error:'',treeData:newTreeData});
+         this.getData(this.state.filterData)
          this.closeModal();
      },
      
      addEntry:function(data){
-         var newData = this.state.data;
-         if(typeof(newData.ScopeAssoc[data.scope]) == 'undefined'){
-             newData.ScopeArray.push({scope:data.scope,regentries:[]});
-             newData.ScopeAssoc[data.scope] = newData.ScopeArray.length-1;
-         }
-         newData.ScopeArray[newData.ScopeAssoc[data.scope]].regentries.push(data);
-         var newTreeData = this.getTreeData(this.getFlatData(newData));
-        this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1,error:''});
+         this.getData(this.state.filterData);
         this.closeModal();
      },
      
@@ -894,7 +864,7 @@ var RegistryScopeTree = React.createClass({
         
         this.props.id
         $('#' + this.props.id).on('select_node.jstree', this.filterDataByTreeNode).jstree({ 
-            'plugins' : ['search','themes','ui','types','contextmenu','sort'],
+            'plugins' : ['search','themes','ui','types','contextmenu'],
             'contextmenu':{
               items:customMenu  
             },
