@@ -29,7 +29,6 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 400, message = "Bad Request", response = ApiException.class),
         @ApiResponse(code = 409, message = "Entry Already Exists", response = RegistryEntry.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
-    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry",
         produces = { "application/xml", "application/json" }, 
         consumes = { "application/xml", "application/json" },
@@ -48,7 +47,6 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 404, message = "Not Found", response = RegistryEntryList.class),
         @ApiResponse(code = 409, message = "Entry Already Exists", response = RegistryEntryList.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntryList.class) })
-    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry/batch",
         produces = { "application/xml", "application/json" }, 
         consumes = { "application/xml", "application/json" },
@@ -66,7 +64,6 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 400, message = "Bad Request", response = Void.class),
         @ApiResponse(code = 404, message = "Not Found", response = Void.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = Void.class) })
-    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry/{id}",
     
         produces = { "application/xml", "application/json" }, 
@@ -85,7 +82,6 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 400, message = "Bad Request", response = RegistryEntry.class),
         @ApiResponse(code = 404, message = "Not Found", response = RegistryEntry.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
-    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry/{id}",
         produces = { "application/xml", "application/json" }, 
         //consumes = { "application/xml", "application/json" },
@@ -102,7 +98,6 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 200, message = "Successful", response = RegistryEntryList.class),
         @ApiResponse(code = 400, message = "Bad Request", response = RegistryEntryList.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntryList.class) })
-    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry",
         produces = { "application/xml", "application/json" }, 
         //consumes = { "application/xml", "application/json" },
@@ -149,7 +144,6 @@ public interface RegistryEntryApi {
         @ApiResponse(code = 404, message = "Not Found", response = RegistryEntry.class),
         @ApiResponse(code = 409, message = "Scope and Name are Not Unique", response = RegistryEntry.class),
         @ApiResponse(code = 500, message = "Internal Server Error", response = RegistryEntry.class) })
-    @CrossOrigin(origins = "http://localhost:8080")
     @RequestMapping(value = "/registryEntry/{id}",
         produces = { "application/xml", "application/json" }, 
         consumes = { "application/xml", "application/json" },

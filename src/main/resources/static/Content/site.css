@@ -92,6 +92,11 @@ body {
        
 	
 }
+
+.navmenu, .navbar-offcanvas {
+    overflow:scroll;
+}
+
  .address-bar {
         display: inherit;
         margin: 0;
