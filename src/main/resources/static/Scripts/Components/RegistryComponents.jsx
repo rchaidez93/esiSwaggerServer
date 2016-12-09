@@ -978,7 +978,7 @@ var RegistryScopeList = React.createClass({
               var boundDeleteEntry = this.handleDeleteEntry.bind(null,this);
               var boundAddEntry = this.handleAddEntry.bind(null,this);
               var boundUpdateScope = this.handleUpdateScope.bind(null,this);
-              
+              alert(JSON.stringify(this.props.filterData))
               return (
                           <RegistryScope handleDeleteEntry={boundDeleteEntry}
                             handleUpdateEntry={boundUpdateEntry}
