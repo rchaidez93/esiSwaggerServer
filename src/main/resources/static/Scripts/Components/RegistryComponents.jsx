@@ -978,7 +978,7 @@ var RegistryScopeList = React.createClass({
               var boundDeleteEntry = this.handleDeleteEntry.bind(null,this);
               var boundAddEntry = this.handleAddEntry.bind(null,this);
               var boundUpdateScope = this.handleUpdateScope.bind(null,this);
-              alert(JSON.stringify(this.props.filterData))
+             
               return (
                           <RegistryScope handleDeleteEntry={boundDeleteEntry}
                             handleUpdateEntry={boundUpdateEntry}
@@ -1123,14 +1123,16 @@ var RegistryScope = React.createClass({
     ShowAll:function(e){
        // e.preventDefault();
         
-        searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.props.filterData.scope) + "&confidential=" + this.props.filterData.confidential + "&name=" + encodeURIComponent(this.props.filterData.name) + "&value=" + encodeURIComponent(this.props.filterData.value) + "&useInheritance=" + this.props.filterData.inheritance + "&matchCase=" + this.props.filterData.sensitive + "&offset=" + this.props.filterData.offset + "&count=" + this.props.filterData.count;
+        searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.props.scope) + "&confidential=" + this.props.filterData.confidential + "&name=" + encodeURIComponent(this.props.filterData.name) + "&value=" + encodeURIComponent(this.props.filterData.value) + "&useInheritance=" + this.props.filterData.inheritance + "&matchCase=" + this.props.filterData.sensitive + "&offset=" + this.props.filterData.offset + "&count=" + this.props.filterData.count;
+      
        
         $.ajax({
          url: searchurl,
          dataType: 'json',
          cache: false,
          success: function(data) {
-             
+        alert(this.state.data.length)
+        alert(data.totalCount)
          if(this.state.data.length < data.totalCount)
                  {
              this.props.updateScope(this.props.scope);
@@ -1184,7 +1186,7 @@ var RegistryScope = React.createClass({
        <a href="#" onClick={this.openCreateEntry}>
            <span title="Create Entry in this scope" className="glyphicon glyphicon-plus"></span>
        </a> 
-        {this.state.showAllLink} 
+       
        <a href="#" onClick={this.handleSort} className="pull-right">
        <span title="Sort Entries" className={this.state.sortClass}></span>
    </a> 
