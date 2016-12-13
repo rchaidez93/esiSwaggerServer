@@ -24,6 +24,7 @@ import com.google.common.net.HttpHeaders;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,7 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     
     //constructor created by gary yerby to handle in memory registry repository
     public RegistryEntryApiController(){
+    	
     	int ttlcnt = 0;
     	for(long i=1;i<5;i++){
     		ttlcnt++;
@@ -91,8 +93,10 @@ public class RegistryEntryApiController implements RegistryEntryApi {
     		scopelist.addListItem(entry);
     		entries.addListItem(entry);
     		entryscopetable.replace(entry.getScope(),scopelist);
+    		
     	}
-		
+       List<RegistryEntry> e = entries.getList();
+		Collections.sort(e, (a, b) -> a.getScope().compareTo(b.getScope()));
 	}
     
     private void deleteEntriesFromTable(String entryIds){

@@ -1,6 +1,6 @@
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
 
-/* Styles used in React */
+/* Styles used in React  */
 var collapsePanelLink={
     cursor:'pointer'
 }
@@ -156,7 +156,7 @@ var RegistryApplication = React.createClass({
               newData.push({id:scopeId,parent:pscope,text:key,type:"folder"});
           }
          for(i=0;i<data.length;i++){
-             newData.push({id:data[i].id,parent:"Scope_" + scopeIds[data[i].scope],text:data[i].name, type:"file"})
+             newData.push({id:data[i].id,parent:"Scope_" + scopeIds[data[i].scope],text:data[i].name, data:data[i], type:"file"})
          }
          
         return newData;
@@ -241,21 +241,18 @@ var RegistryApplication = React.createClass({
      
      //get data retrieves registry entries from server
      getData:function(filterData){
-         
-     
         searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(filterData.scope) + "&confidential=" + filterData.confidential + "&name=" + encodeURIComponent(filterData.name) + "&value=" + encodeURIComponent(filterData.value) + "&useInheritance=" + filterData.inheritance + "&matchCase=" + filterData.sensitive + "&offset=" + filterData.offset + "&count=" + filterData.count;
          $.ajax({
           url: searchurl,
           dataType: 'json',
           cache: false,
           success: function(data) {
-             
               var treeData = this.getTreeData(data.list);
               var newData = convertData(data.list);
               this.setState({data:convertData([]),isModalOpen:false})
               var dataMessage = data.list.length==0?<ErrorMessage>No Results Found</ErrorMessage>:''; 
              
-              newData.ScopeArray = this.sortByScope(newData.ScopeArray);
+             // newData.ScopeArray = this.sortByScope(newData.ScopeArray);
               newData = this.reIndexScopeArray(newData);
               this.setState({treeData:treeData,data:newData,filterData:filterData,error:dataMessage,resultCount:data.totalCount,isModalOpen:false});
           }.bind(this),
@@ -364,12 +361,7 @@ var RegistryApplication = React.createClass({
      }, 
      
      copyScope: function(data,newScope,inherit){
-         var newData = this.state.data;
-         newData.ScopeArray.push({scope:newScope,regentries:data}); //add to end of array
-         newData.ScopeArray = this.sortByScope(newData.ScopeArray); //sort scope array
-         newData = this.reIndexScopeArray(newData);
-         var newTreeData = this.getTreeData(this.getFlatData(newData));
-         this.setState({data:newData,resultCount:this.state.resultCount + newData.ScopeArray.length, treeData:newTreeData})
+         this.getData(this.state.filterData);
      },
      
          
@@ -449,45 +441,19 @@ var RegistryApplication = React.createClass({
      
      
      searchEntries:function(searchData){
-         searchData.offset = this.state.filterData.offset;
+         searchData.offset = 0;
+         //this.state.filterData.offset;
         this.getData(searchData); 
      },
      
      updateEntry:function(entryData){
-         
-        var newData = this.state.data;
-        if(typeof(newData.ScopeAssoc[entryData.scope]) == 'undefined'){ 
-            newData.ScopeArray.push({scope:entryData.scope,regentries:[entryData]});
-            newData.ScopeArray = this.sortByScope(newData.ScopeArray);
-            newData = this.reIndexScopeArray(newData);
-        }
-        
-        var regentries =  newData.ScopeArray[newData.ScopeAssoc[entryData.scope]].regentries
-        for(var i = 0; i<regentries.length; i++){
-            if(regentries[i].id == entryData.id){
-                regentries[i] = entryData;
-                 break;
-            }
-        }
-        var newTreeData = this.getTreeData(this.getFlatData(newData));
-        this.setState({data: newData,error:'',treeData:newTreeData});
+         this.getData(this.state.filterData)
          this.closeModal();
      },
      
      addEntry:function(data){
-         
-         var newData = this.state.data;
-         if(typeof(newData.ScopeAssoc[data.scope]) == 'undefined'){
-             newData.ScopeArray.push({scope:data.scope,regentries:[]});
-             newData.ScopeAssoc[data.scope] = newData.ScopeArray.length-1;
-         }
-         newData.ScopeArray[newData.ScopeAssoc[data.scope]].regentries.push(data);
-         var newTreeData = this.getTreeData(this.getFlatData(newData));
-        this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1,error:''});
+         this.getData(this.state.filterData);
         this.closeModal();
-        
-         
-      
      },
      
     deleteEntry:function(entryid){
@@ -530,9 +496,9 @@ var RegistryApplication = React.createClass({
     
      
      getScopeEntries:function(scope){
-         
          var newData = this.state.data;
          var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(scope) + "&confidential=*&name=*&value=*&matchCase=false";
+        
         $.ajax({
          url: searchurl,
          dataType: 'json',
@@ -540,17 +506,20 @@ var RegistryApplication = React.createClass({
          success: function(data) {
             
             var resultCount = this.state.resultCount;
-            
-            for(var i = 0; i< newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.length; i++){
+            var scopeentrycnt = newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.length;
+            for(var i = 0; i< scopeentrycnt; i++){
+                
                 newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.splice(0,1);
                 resultCount--;
             }
             
-            for(var i = 0; i< data.list.length; i++){
+            for(var i = 0; i < data.list.length; i++){
                 newData.ScopeArray[newData.ScopeAssoc[scope]].regentries.push(data.list[i]);
                 resultCount++;
             }
-            var newTreeData = this.getTreeData(newData);
+            
+         
+            var newTreeData = this.getTreeData(this.getFlatData(newData));
             this.setState({data: newData,treeData:newTreeData,resultCount:this.state.resultCount+1}); 
             
             
@@ -579,7 +548,7 @@ var RegistryApplication = React.createClass({
      },
      
     render: function() {
-         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted} copyScopeHandler={this.copyScope} data={this.state.data}/>:<div></div>
+         var view = this.state.view=="Panel"?<RegistryScopeList url={this.props.url} changeView={this.changeView} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted} copyScopeHandler={this.copyScope} filterData={this.state.filterData} data={this.state.data}/>:<div></div>
 
         return <div>
                 {this.state.pscope}<br />
@@ -589,7 +558,7 @@ var RegistryApplication = React.createClass({
                 <Modal isOpen={this.state.isModalOpen}>{this.state.ModalData}</Modal> 
                 <RegistryEntryFilterPanel>
                    <FilterForm data={this.state.filterData} onSubmit={this.searchEntries}/>
-                   <RegistryScopeTree  id="FilterPanelTree" onSelect={this.filterTree} getScopeEntries={this.getScopeEntries} deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteScopeHandler={this.deleteScope} copyScopeHandler={this.copyScope} data={this.state.treeData}/>
+                   <RegistryScopeTree url={this.props.url} id="FilterPanelTree" onSelect={this.filterTree} getScopeEntries={this.getScopeEntries} handleDeleteEntry={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted} copyScopeHandler={this.copyScope} data={this.state.treeData}/>
                    		</RegistryEntryFilterPanel >
                    <ResultCount data={this.state.resultCount}/>
                  {this.state.error}
@@ -653,16 +622,145 @@ var Pagination = React.createClass({
 var RegistryScopeTree = React.createClass({
     getInitialState: function() { 
         return {
-            data:[]
+            isModalOpen: false,
+            data:[],
+            ModalData:null,
+            selectedScope:'',
+            selectedEntry:'',
+            sortDirection:'Ascending',
+            sortClass:'glyphicon glyphicon-sort-by-attributes'
         }; 
     }, 
-    onPanelViewClick:function(e){
-     
-      this.props.changeView("Panel");
+    openModal: function() { 
+        this.setState({ isModalOpen: true }); 
+    }, 
+    closeModal: function() { 
+        this.setState({ isModalOpen: false }); 
     },
+    
+    updateEntryHandler: function(entryData){
+        this.setState({data:entryData});
+        this.props.updateEntryHandler(entryData);
+        this.closeModal();
+        
+    },
+    
+   openEditEntry: function(entry){
+       this.setState({ isModalOpen: true,
+       ModalData:<div className="panel panel-default"><div className="panel-heading registryentryheader"><h3>Edit Registry Entry</h3></div>
+       <div className="panel-body registryentrybody"><RegistryEntryForm onSubmit={this.updateEntryHandler} type="PUT" url={this.props.url} onCancel={this.closeModal} data={entry}/></div>
+       <div className="panel-footer registryentryfooter"></div></div>
+       });
+       
+    },
+
+    openCreateEntry: function(scope){
+       var data={scope:scope,name:'',value:'',confidential:false};
+       this.setState({ isModalOpen: true,
+       ModalData:<div className="panel panel-default"><div className="panel-heading registryentryheader"><h3>Create Entry</h3> </div>
+              <div className="panel-body registryentrybody"><RegistryEntryForm onSubmit={this.createEntryHandler} type="POST" url={this.props.url} onCancel={this.closeModal} data={data}/></div><div className="panel-footer registryentryfooter"></div></div>
+       });
+       
+    },
+    
+    createEntryHandler:function(entryData){
+      this.closeModal();
+      this.props.addEntryHandler(entryData);
+      
+    },
+    
+    onHandleCopyScopeSubmit:function(data,newScope,inherit){
+        this.closeModal();
+        this.props.copyScopeHandler(data,newScope,inherit);
+       //TODO add copy functionality;
+       
+    },
+    
+    
+    
+    CascadedDeleteScopeHandler:function(){
+        this.closeModal();
+        this.props.deleteCascadedScopeHandler(this.state.selectedScope)
+    },
+    
+    RestrictedDeleteScopeHandler:function(){
+        this.closeModal();
+        this.props.deleteRestrictedScopeHandler(this.state.selectedScope)
+    },
+    
+    confirmDeleteScope:function(scope){
+               
+        var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(scope + "/*") + "&confidential=*&name=*&value=*&matchCase=true";
+        $.ajax({
+            url: searchurl,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+                if(data.totalCount==0){
+                    this.setState(
+                            { selectedScope:scope,
+                                isModalOpen: true,
+                                ModalData:<div><ConfirmationForm onCancel={this.closeModal} onSubmit={this.RestrictedDeleteScopeHandler} header={<h3>Confirm Delete Scope</h3>}>
+                               <p>Are you sure you want to delete this scope {scope}<br /><br /></p>
+                                </ConfirmationForm></div>}
+                            )
+                } else {
+                    this.setState({
+                        selectedScope:scope,
+                        isModalOpen: true,
+                        ModalData:<div className="panel panel-default">
+                    <div className="panel-heading registryentryheader-pink"><h3>WARNING!!</h3></div>
+                    <div className="panel-body registryentrybody">
+                        <DeleteParentScopePromptForm onCascadedDelete={this.CascadedDeleteScopeHandler} onRestrictedDelete={this.RestrictedDeleteScopeHandler} scope={scope} onCancel={this.closeModal}/>
+                    </div>
+                    <div className="panel-footer registryentryfooter">&nbsp;</div>
+                </div>});            
+                }
+            }.bind(this),
+            error: function(xhr, status, err) {
+                this.setState({errormessage:status + xhr.statusText});
+            }.bind(this)
+        });
+    
+        
+        
+    
+    },
+    
+    onHandleDeleteEntry:function(){
+        this.closeModal();
+        this.props.handleDeleteEntry(this.state.selectedEntry.id)
+    },
+    
+    confirmDeleteEntry:function(entry){
+        
+        this.setState({selectedEntry:entry,isModalOpen: true,
+           ModalData:<div><ConfirmationForm onCancel={this.closeModal} onSubmit={this.onHandleDeleteEntry} header={<h3>Confirm Delete Entry</h3>}>
+               
+         <p>Are you sure you want to delete this Entry {entry.name}</p>
+           </ConfirmationForm></div>});
+    
+    },
+    
+    openCopyScope: function(scope){
+        
+       this.setState({ isModalOpen: true,
+       ModalData:<div className="panel panel-default">
+          <div className="panel-heading registryentryheader"><h3>Copy {this.props.scope}</h3></div>
+          <div className="panel-body registryentrybody"><CopyScopeForm onCancel={this.closeModal} url={this.props.url} scope={scope} onSubmit={this.onHandleCopyScopeSubmit}/></div>
+          <div className="panel-footer registryentryfooter"></div>
+          </div>  
+              
+       });
+       
+    },
+
+    
+    
     
     filterDataByTreeNode:function (e,data) {
         e.preventDefault();
+        
         var node = data.instance.get_node(data.selected[0])
         
         var name="*";
@@ -680,39 +778,138 @@ var RegistryScopeTree = React.createClass({
        } else {
            var pNode = $('#' + this.props.id).jstree(true).get_node(node.parent);
            name=node.text
-           scope=pNode.text + "*"
+           scope=pNode.text
        }
        var filterData = {name:name,value:value,scope:scope,confidential:confidential,inheritance:inheritance,sensitive:sensitive,count:count,offset:0 };
+       var evt =  window.event || event;
+       var button = evt.which || evt.button;
+
+       if( button != 1 && ( typeof button != "undefined")) {
+           return false; 
+       }
        this.props.onSelect(filterData);
        return false; 
         
      },
+     
+     //deleteCascadedScopeHandler={this.deleteScopeCascaded} deleteRestrictedScopeHandler={this.deleteScopeRestricted}
+    // deleteEntryHandler={this.deleteEntry} addEntryHandler={this.addEntry} updateEntryHandler={this.updateEntry} deleteScopeHandler={this.deleteScope} copyScopeHandler={this.copyScope} data={this.state.treeData}/>
+     customMenu:function(node)
+     {
+         var createEntry = this.openCreateEntry;
+         var openEditEntry = this.openEditEntry;
+         var deleteScope = this.confirmDeleteScope;
+         var copyScope = this.openCopyScope;
+         var deleteEntry = this.confirmDeleteEntry;
+         
+         var items = {
+             'deleteScope' : {
+                 'label' : 'Delete Scope',
+                 'action' : function () 
+                 {
+                     window.event.preventDefault();
+                     window.event.stopPropagation();
+                     deleteScope(node.text) 
+                 }
+             },
+             'createEntry':{
+               'label': 'Create new Entry',
+               'action':function(){
+                   window.event.preventDefault();
+                   window.event.stopPropagation();
+                   createEntry(node.text)}
+             },
+             'copyScope' : {
+                 'label' : 'Copy Scope',
+                 'action' : function () {
+                     window.event.preventDefault();
+                     window.event.stopPropagation();
+                     copyScope(node.text);
+                 }
+             },
+             'editEntry' : {
+                 'label' : 'Edit Entry',
+                 'action' : function () 
+                 { 
+                     window.event.preventDefault();
+                     window.event.stopPropagation();
+                     openEditEntry(node.data);
+                 }
+             },
+             'deleteEntry':{
+                 'label':'Delete Entry',
+                 'action':function(){
+                     window.event.preventDefault();
+                     window.event.stopPropagation();
+                     deleteEntry(node.data)
+                 }
+             }
+         }
+
+         if (node.type === 'file') {
+             delete items.deleteScope;
+             delete items.copyScope;
+             delete items.createEntry;
+         } else  {
+             delete items.editEntry;
+             delete items.deleteEntry
+         }
+
+         return items;
+     },
+     
     componentDidMount:function(){
+        
+        var customMenu = this.customMenu
+        
         this.props.id
         $('#' + this.props.id).on('select_node.jstree', this.filterDataByTreeNode).jstree({ 
-            'plugins' : ['search','themes','ui','types'],
+            'plugins' : ['search','themes','ui','types','contextmenu'],
+            'contextmenu':{
+              items:customMenu  
+            },
             'ui' : {
                 'select_limit' : 1
             },
             'core' : {
-            multiple:false,
-            animation:1,
-            'data' :this.props.data,
-            "themes" : { "stripes" : true }
-        },
-        types : {
-            "default" : {},
-            "file" : {"icon" : "glyphicon glyphicon-file"}
-        }
+            
+                "check_callback": function (callback, node, node_parent, node_position, more){
+                    $('.tree-dynamic-tooltip').remove();
+                     var span = $('<span>');
+                     span.addClass('tree-dynamic-tooltip');
+                     $('#jstree-dnd').find('i').after(span);
+                }, 
+                multiple:false,
+                animation:1,
+                'data' :this.props.data,
+                "themes" : { "stripes" : true }
+            },
+            types : {
+                "default" : {},
+                "file" : {"icon" : "glyphicon glyphicon-file"}
+            }
           
         }).on('click', function(event){
             event.preventDefault();
             event.stopPropagation();
         });
+        
+        /* THINGS TO DO
+        $(document).bind("dnd_start.vakata", function(e, data) {
+            console.log("Start dnd");
+        })
+        .bind("dnd_move.vakata", function(e, data) {
+            console.log("Move dnd");
+        })
+        .bind("dnd_stop.vakata", function(e, data) {
+           // alert(JSON.stringify(data))
+        });
+        */
+       
     },
     
     componentWillReceiveProps:function(nextProps){
-        $('#' + this.props.id).jstree(true).settings.core.data = nextProps.data;
+       $('#' + this.props.id).jstree(true).settings.core.data = nextProps.data;
         $('#' + this.props.id).jstree(true).refresh();
     },
     componentDidUpdate:function(prevProps,prevState)
@@ -723,6 +920,9 @@ var RegistryScopeTree = React.createClass({
     },
     render:function(){
         return <div class="pnl pnl-body treeview">
+        <Modal isOpen={this.state.isModalOpen}> 
+        {this.state.ModalData} 
+        </Modal> 
         <div id={this.props.id}>Loading Tree...</div>
         </div>
     }
@@ -778,7 +978,7 @@ var RegistryScopeList = React.createClass({
               var boundDeleteEntry = this.handleDeleteEntry.bind(null,this);
               var boundAddEntry = this.handleAddEntry.bind(null,this);
               var boundUpdateScope = this.handleUpdateScope.bind(null,this);
-              
+             
               return (
                           <RegistryScope handleDeleteEntry={boundDeleteEntry}
                             handleUpdateEntry={boundUpdateEntry}
@@ -788,6 +988,7 @@ var RegistryScopeList = React.createClass({
                             updateScope={boundUpdateScope}
                             data={scope.regentries}
                             key={idx}
+                            filterData={this.props.filterData}
                             url={this.props.url}
                             idx={"scope" +idx}
                             scope={scope.scope}
@@ -805,7 +1006,6 @@ var RegistryScope = React.createClass({
     getInitialState: function() { 
         return { isModalOpen: false,
                ModalData:null,
-               showAllLink:'',
                data:this.props.data,
                sortDirection:'Ascending',
                sortClass:'glyphicon glyphicon-sort-by-attributes'
@@ -880,14 +1080,14 @@ var RegistryScope = React.createClass({
                             { isModalOpen: true,
                                 ModalData:<div><ConfirmationForm onCancel={this.closeModal} onSubmit={this.RestrictedDeleteScopeHandler} header={<h3>Confirm Delete Scope</h3>}>
                                
-                               <p>Are you sure you want to delete this scope {this.props.scope}</p>
+                               <p>Are you sure you want to delete this scope {this.props.scope}<br /><br /></p>
                               
                                 </ConfirmationForm></div>}
                             )
                 } else {
                     this.setState({ isModalOpen: true,
                         ModalData:<div className="panel panel-default">
-                    <div className="panel-heading panel-danger"><h3>WARNING!!</h3></div>
+                    <div className="panel-heading registryentryheader-pink"><h3>WARNING!!</h3></div>
                     <div className="panel-body registryentrybody">
                         <DeleteParentScopePromptForm onCascadedDelete={this.CascadedDeleteScopeHandler} onRestrictedDelete={this.RestrictedDeleteScopeHandler} onCancel={this.closeModal}/>
                     </div>
@@ -919,24 +1119,23 @@ var RegistryScope = React.createClass({
        
     },
     
-    onShowAllClick:function(e){
-        e.preventDefault(); 
-        this.props.updateScope(this.props.scope);
-        this.setState({showAllLink:''});
-    },
-    setShowAllLink:function(e){
-        e.preventDefault();
-        var  searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent($(e.target).text()) + "&confidential=*&name=*&value=*&matchCase=false";
+   
+    ShowAll:function(e){
+       // e.preventDefault();
+        
+        searchurl = this.props.url + "/registryEntry?scope=" + encodeURIComponent(this.props.scope) + "&confidential=" + this.props.filterData.confidential + "&name=" + encodeURIComponent(this.props.filterData.name) + "&value=" + encodeURIComponent(this.props.filterData.value) + "&useInheritance=" + this.props.filterData.inheritance + "&matchCase=" + this.props.filterData.sensitive + "&offset=" + this.props.filterData.offset + "&count=" + this.props.filterData.count;
+      
        
         $.ajax({
          url: searchurl,
          dataType: 'json',
          cache: false,
          success: function(data) {
-             
+        alert(this.state.data.length)
+        alert(data.totalCount)
          if(this.state.data.length < data.totalCount)
                  {
-                  this.setState({showAllLink:<a href="#" className="pull-right" onClick={this.onShowAllClick}>Show All</a>});
+             this.props.updateScope(this.props.scope);
                  }
             
              
@@ -971,7 +1170,7 @@ var RegistryScope = React.createClass({
        </Modal> 
        <div className="panel-heading">
        <h4 className="panel-title">
-         <span className="scopeTitle" style={collapsePanelLink} data-toggle="collapse" data-parent="#accordion" data-target={datatarget} onClick={this.setShowAllLink}>{this.props.scope}</span>
+         <span className="scopeTitle" style={collapsePanelLink} data-toggle="collapse" data-parent="#accordion" data-target={datatarget} onClick={this.ShowAll}>{this.props.scope}</span>
          <span className="panel-title pull-right">
              <a href="#" onClick={this.openCopyScope}>
                  <span title="Copy Scope" className="glyphicon glyphicon-share"></span>
@@ -987,7 +1186,7 @@ var RegistryScope = React.createClass({
        <a href="#" onClick={this.openCreateEntry}>
            <span title="Create Entry in this scope" className="glyphicon glyphicon-plus"></span>
        </a> 
-       {this.state.showAllLink}
+       
        <a href="#" onClick={this.handleSort} className="pull-right">
        <span title="Sort Entries" className={this.state.sortClass}></span>
    </a> 
@@ -1246,7 +1445,7 @@ var CopyScopeForm = React.createClass({
               var entriestocopy = scopeData.ScopeArray[scopeData.ScopeAssoc[this.props.scope]].regentries;
              
              for(i=0;i<entriestocopy.length;i++){
-                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:this.state.inherit==true?"":entriestocopy[i].value}
+                 var entry = {scope:scope, name:entriestocopy[i].name,id:0,value:entriestocopy[i].value}
                  destScope.regentries.push(entry);
                  
             }
@@ -1288,7 +1487,7 @@ var CopyScopeForm = React.createClass({
     <div className="form-group row">
       <label for="txtScope" className="col-sm-2 col-form-label">Scope</label>
       <div className="col-sm-10">
-        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><input type="checkbox" onClick={this.handleInheritParentScope}/>Inherit from Parent
+        <input type="text" className="form-control" onChange={this.handleScopeChange} id="txtScope" value={this.state.scope} placeholder="Scope"/><br /><input type="checkbox" onClick={this.handleInheritParentScope}/>     Make this a child
       </div>
     </div>
           
@@ -1510,8 +1709,7 @@ var FilterForm = React.createClass({
     },
     componentDidMount:function(){
         
-    
-      this.setState({count:this.props.data.count,
+         this.setState({count:this.props.data.count,
           name:this.props.data.name,
           scope:this.props.data.scope,
           value:this.props.data.value,
@@ -1553,7 +1751,6 @@ var FilterForm = React.createClass({
     
     onConfidentialChange:function(e){
         this.setState({confidential: e.target.checked},function(){this.onSubmitClicked(e)});
-        
     },
     
     onSensitiveChange:function(e){
@@ -1595,7 +1792,7 @@ var FilterForm = React.createClass({
           <hr />
           <div className="form-group">
            <div className="checkbox">
-            <label><input type="checkbox" id="confidential" onChange={this.onConfidentialChange} checked={this.state.confidential}  /> Is Confidential</label>
+            <label><input type="checkbox" id="confidential" onChange={this.onConfidentialChange} checked={this.state.confidential!=true?false:true}  /> Is Confidential</label>
           </div>
                     
           <div className="checkbox">
@@ -1608,7 +1805,7 @@ var FilterForm = React.createClass({
           </div>
           <div>
         	<div>
-        	<button type = "button" className = "btn btn-primary pull-right" onClick = {this.clearInput}>Clear</button>
+        	<button type = "button" className = "btn btn-lightblue pull-right" onClick = {this.clearInput}>Clear</button>
         	</div>
         </div>
       </form>);
@@ -1680,6 +1877,7 @@ var RegistryEntryRead = React.createClass({
 
   }
 });
+<<<<<<< HEAD
 var Child = React.createClass({
 	 
 	render:function(){
@@ -1688,11 +1886,23 @@ var Child = React.createClass({
 		}
 });
 	
+=======
+
+
+
+>>>>>>> refs/remotes/guapo832/master
 /*
  * this is the display view of a registry entry
  */
 var RegistryEntryDispForm= React.createClass({
+    getInitialState: function(){
+        return {name:'*',
+            showValueLinkLabel:'show',
+            value:'******',
+            valueVisible:!this.props.data.confidential
+        };
     
+<<<<<<< HEAD
 	getInitialState:function(){
     	return{childVisible: false};
     },
@@ -1706,6 +1916,30 @@ var RegistryEntryDispForm= React.createClass({
 		var confbutton = <div>{this.props.data.value}</div>
 	}
     var confidential= this.props.data.confidential?"checked":"";  
+=======
+    },
+    onShowValueClick: function(e) {
+        e.preventDefault();
+        if(!this.state.valueVisible){
+            this.setState({valueVisible: !this.state.valueVisible,showValueLinkLabel:"show",value:"*******"});
+        } else {
+            this.setState({valueVisible: !this.state.valueVisible,showValueLinkLabel:"hide",value:this.props.data.value});     
+        }
+       
+    },
+  render: function() {
+      var confidential= this.props.data.confidential?"checked":"";
+      
+      if(confidential == "checked"){
+          var confbutton = <span> {this.state.value}&nbsp;<a href="#" onClick= {this.onShowValueClick}>{this.state.showValueLinkLabel}</a></span>
+      }
+      else
+      {
+          var confbutton = <span>{this.props.data.value}</span>
+      }
+  
+      
+>>>>>>> refs/remotes/guapo832/master
     return <div class="form-horizontal">
     <div class="form-group hidden">
     <label class="control-label col-sm-2">Scope:</label>&nbsp;<span className="registryEntryScope">{this.props.data.scope}</span>
@@ -1719,7 +1953,11 @@ var RegistryEntryDispForm= React.createClass({
   </div>
   
   <div class="form-group">
+<<<<<<< HEAD
   <label class="control-label col-sm-2">Value: </label>{confbutton} {this.state.childVisible ? <Child /> : null }
+=======
+  <label class="control-label col-sm-2">Value:</label> {confbutton}
+>>>>>>> refs/remotes/guapo832/master
   
 </div>
 
@@ -1751,7 +1989,7 @@ var RegistryEntryDispForm= React.createClass({
  */
 var RegistryEntryFilterPanel = React.createClass({
     render: function(){
-        return <div><nav id="myNavmenu" style={filterPanelStyle} className="navmenu navmenu-default navmenu-fixed-left offcanvas" role="navigation">
+        return <div><nav id="myNavmenu" style={filterPanelStyle} className="navmenu navmenu-fixed-left offcanvas" role="navigation">
          
          {this.props.children}
         
@@ -1787,14 +2025,15 @@ var DragEntryPromptForm = React.createClass({
     
     render:function(){
                 return <div>
-                <p>You just dragged {this.props.srcEntry.name} to {this.props.destScope}. How do you want to handle this?</p>
-                <div className="flex-button-container">
-                <button onClick={this.onCopyClicked} className="btn btn-primary flex-button-item">Copy</button>
-                <button onClick={this.onMoveClicked} className="btn btn-success flex-button-item">Move</button>
-                <button onClick={this.onCancelClicked} className="btn btn-danger flex-button-item">Cancel</button>  
+                <p>You just dragged {this.props.srcEntry.name} to {this.props.destScope}. How do you want to handle this?<br /><br /></p>
+                <div className="form-group row">
+                <div className="offset-sm-2 col-sm-9">
+                <button onClick={this.onCancelClicked} className="btn btn-warning pull-right">Cancel</button> 
+                <button onClick={this.onCopyClicked} className="btn btn-darkblue pull-right">Copy</button>
+                <button onClick={this.onMoveClicked} className="btn btn-pink pull-right">Move</button>
                 </div>
-                </div> 
-               
+               </div>
+               </div>
               
             }
   
@@ -1823,10 +2062,14 @@ var DeleteParentScopePromptForm = React.createClass({
                 <li>Click Restricted Delete to preserve the children as orphans</li>
                 <li>Click Cancel if you do not want to perform this delete</li>
                 </ul>
-                <div className="flex-button-container">
-                <button onClick={this.onCascadeClicked} className="btn btn-primary flex-button-item">Cascade Delete</button>
-                <button onClick={this.onRestrictClicked} className="btn btn-success flex-button-item">Restricted Delete</button>
-                <button onClick={this.onCancelClicked} className="btn btn-danger flex-button-item">Cancel</button>  
+                <br />
+                <div className="form-group row">
+                <div className="offset-sm-10 col-sm-10">
+                <button onClick={this.onCancelClicked} className="btn btn-warning pull-right">Cancel</button>
+                <button onClick={this.onCascadeClicked} className="btn btn-darkblue pull-right">Cascade Delete</button>
+                <button onClick={this.onRestrictClicked} className="btn btn-pink pull-right">Restricted Delete</button>
+                  
+              </div>
               </div>
                 </div> 
             }
